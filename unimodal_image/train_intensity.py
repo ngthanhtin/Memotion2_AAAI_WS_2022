@@ -36,7 +36,10 @@ from models.classifier_onlyimage import Classifier_Intensity
 #-----
 
 # manually fix batch size
-CFG.batch_size = 8
+CFG.batch_size = 10
+CFG.learning_rate = 2e-5
+CFG.device = "cuda:1"
+CFG.epochs = 25
 
 def seed_torch(seed=42):
     random.seed(seed)

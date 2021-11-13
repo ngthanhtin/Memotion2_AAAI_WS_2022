@@ -34,7 +34,10 @@ import timm
 #-----
 
 # manually fix batch size
-CFG.batch_size = 5
+CFG.batch_size = 10
+CFG.learning_rate = 2e-5
+CFG.device = "cuda:2"
+CFG.epochs = 25
 
 def seed_torch(seed=42):
     random.seed(seed)
@@ -219,7 +222,7 @@ def train_loop(trn_idx, val_idx):
                         'optimizer': optimizer.state_dict(), 
                         'scheduler': scheduler.state_dict()
                         },
-                        f'{CFG.model_name}_onlyimage_fold{train_fold}_sentiment_best.pth')
+                        f'onlyimage_fold{train_fold}_sentiment_best.pth')
             if f1_mavg > best_f1_mavg:
                 best_f1_mavg = f1_mavg
             if acc > best_acc:

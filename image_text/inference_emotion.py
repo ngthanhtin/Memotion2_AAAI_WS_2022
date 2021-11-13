@@ -178,7 +178,6 @@ def inference_emotion():
         f.close()
 
 ### --- LOAD TOKENIZER----- ###
-tokenizer = Tokenizer()
 tokenizer = torch.load(CFG.tokenizer_path)
 
 ###--- LOAD DATA-----------###

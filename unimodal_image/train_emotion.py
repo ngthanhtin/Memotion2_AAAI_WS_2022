@@ -36,7 +36,10 @@ from models.classifier_onlyimage import Classifier_Emotion
 #-----
 
 # manually fix batch size
-CFG.batch_size = 8
+CFG.batch_size = 10
+CFG.learning_rate = 2e-5
+CFG.device = "cuda:2"
+CFG.epochs = 25
 
 def seed_torch(seed=42):
     random.seed(seed)
@@ -96,10 +99,15 @@ def train_loop(trn_idx, val_idx):
     classifier.to(CFG.device)
     params = list(model.parameters()) + list(classifier.parameters())
     # Loss and optimizer
-    criterion_humour = nn.CrossEntropyLoss(weight = CFG.class_weight_gradient_humour)
-    criterion_sarcasm = nn.CrossEntropyLoss(weight = CFG.class_weight_gradient_sarcasm)
-    criterion_offensive = nn.CrossEntropyLoss(weight = CFG.class_weight_gradient_offensive)
-    criterion_motivation = nn.CrossEntropyLoss(weight = CFG.class_weight_gradient_motivation)
+    # criterion_humour = nn.CrossEntropyLoss(weight = CFG.class_weight_gradient_humour.to(CFG.device))
+    # criterion_sarcasm = nn.CrossEntropyLoss(weight = CFG.class_weight_gradient_sarcasm.to(CFG.device))
+    # criterion_offensive = nn.CrossEntropyLoss(weight = CFG.class_weight_gradient_offensive.to(CFG.device))
+    # criterion_motivation = nn.CrossEntropyLoss(weight = CFG.class_weight_gradient_motivation.to(CFG.device))
+
+    criterion_humour = nn.CrossEntropyLoss()
+    criterion_sarcasm = nn.CrossEntropyLoss()
+    criterion_offensive = nn.CrossEntropyLoss()
+    criterion_motivation = nn.CrossEntropyLoss()
 
     optimizer = torch.optim.Adam(params, lr = CFG.learning_rate, weight_decay=CFG.weight_decay)
     # optimizer = torch.optim.AdamW(params, lr=CFG.learning_rate, betas=(0.9, 0.999))
