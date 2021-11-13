@@ -109,7 +109,8 @@ def train_loop(trn_idx, val_idx):
     params = list(model.parameters()) + list(classifier.parameters())
 
     # Loss and optimizer
-    criterion = nn.CrossEntropyLoss(weight = CFG.class_weight_gradient.to(CFG.device)) #  weight_class
+    # criterion = nn.CrossEntropyLoss(weight = CFG.class_weight_gradient.to(CFG.device)) #  weight_class
+    criterion = nn.CrossEntropyLoss() #  weight_class
     # criterion = CB_loss
     optimizer = torch.optim.Adam(params, lr = CFG.learning_rate, weight_decay=CFG.weight_decay)
     scheduler = get_scheduler(optimizer)
@@ -238,10 +239,6 @@ def train_loop(trn_idx, val_idx):
 
             if current_macro > best_f1:
                 best_f1 = current_macro
-            if f1_mavg > best_f1_mavg:
-                best_f1_mavg = f1_mavg
-            if acc > best_acc:
-                best_acc = acc
                 print("Save model....")
                 torch.save({'model': model.state_dict(), 
                             'classifier': classifier.state_dict(),
@@ -249,6 +246,11 @@ def train_loop(trn_idx, val_idx):
                         'scheduler': scheduler.state_dict()
                         },
                         f'{CFG.model_name}_fold{train_fold}_sentiment_best.pth')
+            if f1_mavg > best_f1_mavg:
+                best_f1_mavg = f1_mavg
+            if acc > best_acc:
+                best_acc = acc
+                
                 
 
             print(f'Accuracy of the network on the test set after Epoch {epoch+1} is: {acc} %')        
