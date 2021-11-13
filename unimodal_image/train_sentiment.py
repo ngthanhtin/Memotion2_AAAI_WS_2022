@@ -58,10 +58,10 @@ def train_loop(trn_idx, val_idx):
     # sampler = torch.utils.data.sampler.WeightedRandomSampler(weights, len(weights), replacement=True)
     
     # only get image
-    train_data = MemoDataset_Sentiment(train_images[trn_idx], None, train_target_tensor, CFG.train_path, None, None, transform=get_transforms(data = 'train')) 
-    test_data = MemoDataset_Sentiment(train_images[val_idx], None, val_target_tensor, CFG.train_path, None, None, transform=None) 
+    train_data = MemoDataset_Sentiment(train_images[trn_idx], None, target_tensor, CFG.train_path, None, None, transform=get_transforms(data = 'train')) 
+    test_data = MemoDataset_Sentiment(train_images[val_idx], None, target_tensor_test, CFG.train_path, None, None, transform=None) 
     # 
-    trainloader = DataLoader(train_data, batch_size=CFG.batch_size, sampler = sampler, shuffle=False, drop_last = True, num_workers=4) # if have sampler, dont use shuffle
+    trainloader = DataLoader(train_data, batch_size=CFG.batch_size, shuffle=True, drop_last = True, num_workers=4) # if have sampler, dont use shuffle
     testloader = DataLoader(test_data, batch_size=CFG.batch_size, drop_last=False, shuffle=False, num_workers=4)
     
     # ====================================================
