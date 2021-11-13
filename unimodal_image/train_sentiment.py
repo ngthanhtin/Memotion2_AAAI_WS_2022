@@ -48,14 +48,14 @@ seed_torch(seed = CFG.seed)
 
 def train_loop(trn_idx, val_idx):
 
-    print('Training with fold {} started'.format(train_fold))
-    train_target_tensor = [target_tensor[index] for index in trn_idx]
-    val_target_tensor = [target_tensor[index] for index in val_idx]
+    # print('Training with fold {} started'.format(train_fold))
+    # train_target_tensor = [target_tensor[index] for index in trn_idx]
+    # val_target_tensor = [target_tensor[index] for index in val_idx]
 
-    # create sampler
-    weights = calculateWeights(train_target_tensor)
-    weights = torch.DoubleTensor(weights)
-    sampler = torch.utils.data.sampler.WeightedRandomSampler(weights, len(weights), replacement=True)
+    # # create sampler
+    # weights = calculateWeights(train_target_tensor)
+    # weights = torch.DoubleTensor(weights)
+    # sampler = torch.utils.data.sampler.WeightedRandomSampler(weights, len(weights), replacement=True)
     
     # only get image
     train_data = MemoDataset_Sentiment(train_images[trn_idx], None, train_target_tensor, CFG.train_path, None, None, transform=get_transforms(data = 'train')) 
