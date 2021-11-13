@@ -1,0 +1,15 @@
+models/__pycache__/
+utils/__pycache__/
+/__pycache__/
+*.pth
+*.npy
+glove/*
+miscellaneous_code/
+eda/.ipynb_checkpoints/
+results/
+format.py
+Scene_Text_Detection_and_Recognition/__pycache__/
+utils/lookahead/__pycache__/
+utils/memotion_utils/__pycache__/
+utils/memotion_utils/transformer/__pycache__/
+utils/radam/__pycache__/
