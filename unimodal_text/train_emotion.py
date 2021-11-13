@@ -42,8 +42,8 @@ import utils.memotion_utils.transformer.general as transformer_general_utils
 
 # manually fix CFG
 CFG.max_len = 35
-CFG.batch_size = 15
-CFG.epochs = 10
+CFG.batch_size = 25
+CFG.epochs = 25
 CFG.learning_rate = 2e-5
 CFG.device = 'cuda:2'
 
@@ -105,6 +105,8 @@ def train_loop(trn_idx, val_idx):
 
     # model = BertForSequenceClassification.from_pretrained("bert-base-uncased", num_labels=CFG.n_sentiment_classes)
     model = RobertaForSequenceClassification.from_pretrained("distilroberta-base", num_labels=4) # because it has 4 classes
+    # states = torch.load('onlytext_fold0_emotion_best.pth',  map_location=torch.device('cpu'))
+    # model.load_state_dict(states['model'])
     model.to(CFG.device)
     
     params = list(model.parameters())

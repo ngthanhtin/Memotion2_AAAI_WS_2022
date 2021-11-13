@@ -44,8 +44,9 @@ import utils.memotion_utils.transformer.general as transformer_general_utils
 # manually fix CFG
 CFG.max_len = 35
 CFG.batch_size = 15
-CFG.epochs = 10
+CFG.epochs = 14
 CFG.learning_rate = 2e-5
+CFG.device = 'cuda:2'
 
 def seed_torch(seed=42):
     random.seed(seed)
@@ -113,10 +114,10 @@ def train_loop(trn_idx, val_idx):
     params = list(model.parameters())
 
     # Loss and optimizer
-    criterion_humour = nn.BCEWithLogitsLoss(weight=CFG.class_weight_gradient_intensity_humour)
-    criterion_sarcasm = nn.BCEWithLogitsLoss(weight=CFG.class_weight_gradient_intensity_sarcasm)
-    criterion_offensive = nn.BCEWithLogitsLoss(weight=CFG.class_weight_gradient_intensity_offensive)
-    criterion_motivation = nn.BCEWithLogitsLoss(weight=CFG.class_weight_gradient_intensity_motivation)
+    criterion_humour = nn.BCEWithLogitsLoss(weight=CFG.class_weight_gradient_intensity_humour.to(CFG.device))
+    criterion_sarcasm = nn.BCEWithLogitsLoss(weight=CFG.class_weight_gradient_intensity_sarcasm.to(CFG.device))
+    criterion_offensive = nn.BCEWithLogitsLoss(weight=CFG.class_weight_gradient_intensity_offensive.to(CFG.device))
+    criterion_motivation = nn.BCEWithLogitsLoss(weight=CFG.class_weight_gradient_intensity_motivation.to(CFG.device))
     
     # optimizer = torch.optim.Adam(params, lr = CFG.learning_rate, weight_decay=CFG.weight_decay)
     # optimizer = torch.optim.AdamW(model.parameters(), lr=CFG.learning_rate, betas=(0.9, 0.999))

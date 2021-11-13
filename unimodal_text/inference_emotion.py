@@ -62,8 +62,9 @@ def inference_emotion():
          CFG.test_path, roberta_tokenizer, CFG.max_len, transform=get_transforms(data = 'train')) 
     
     testloader = DataLoader(test_data, batch_size=CFG.batch_size, drop_last=False, shuffle=False, num_workers=4)
-    #load full model
-    states = torch.load('onlytext_fold0_emotion_best.pth', map_location = torch.device('cpu'))
+    #load full model 
+    # /home/tinvn/TIN/MEME_Challenge/code/temp_best/best_onlytext/onlytext_fold0_emotion_best.pth
+    states = torch.load(f'onlytext_fold0_emotion_best.pth', map_location = torch.device('cpu'))
 
     model = RobertaForSequenceClassification.from_pretrained("distilroberta-base", num_labels=4)
     model.to(CFG.device)

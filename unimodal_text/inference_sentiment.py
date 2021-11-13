@@ -32,7 +32,7 @@ from transformers import BertTokenizer, RobertaTokenizer,RobertaModel, XLNetToke
     BertForSequenceClassification, XLNetForSequenceClassification, RobertaModel, AdamW, RobertaForSequenceClassification
 
 # manually fix batch size
-CFG.batch_size = 5
+CFG.batch_size = 10
 
 def seed_torch(seed=42):
     random.seed(seed)
@@ -50,7 +50,8 @@ def inference_sentiment():
     
     testloader = DataLoader(test_data, batch_size=CFG.batch_size, drop_last=False, shuffle=False, num_workers=4)
     #load full model
-    states = torch.load('onlytext_fold0_sentiment_best.pth', map_location = torch.device('cpu'))
+    # onlytext_fold0_sentiment_best.pth
+    states = torch.load('/home/tinvn/TIN/MEME_Challenge/code/temp_best/best_onlytext/onlytext_fold0test_sentiment_best_old_5095.pth', map_location = torch.device('cpu'))
 
     model = RobertaForSequenceClassification.from_pretrained("distilroberta-base", num_labels=CFG.n_sentiment_classes)
     model.to(CFG.device)

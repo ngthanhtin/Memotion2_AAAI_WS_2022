@@ -33,9 +33,10 @@ from utils.clean_text import *
 # manually fix CFG
 CFG.max_len = 35
 CFG.batch_size = 15
-CFG.epochs = 10
+CFG.epochs = 25
 CFG.learning_rate = 2e-5
 CFG.device = 'cuda:1'
+
 def seed_torch(seed=42):
     random.seed(seed)
     os.environ['PYTHONHASHSEED'] = str(seed)
@@ -53,6 +54,7 @@ def inference_intensity():
     
     testloader = DataLoader(test_data, batch_size=CFG.batch_size, drop_last=False, shuffle=False, num_workers=4)
     #load full model
+    # 
     states = torch.load('onlytext_fold0_intensity_best.pth', map_location = torch.device('cpu'))
 
     model = Classifier_Intensity(CFG.n_intensity_classes[0], CFG.n_intensity_classes[1], CFG.n_intensity_classes[2], CFG.n_intensity_classes[3], CFG.dropout)
