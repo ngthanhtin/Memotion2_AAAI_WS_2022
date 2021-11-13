@@ -3,7 +3,6 @@ import torch
 
 class CFG:
     apex           = False
-    max_len        = 25
     model_name     = 'multihop' # san, cnnbert_concat, cnnbert_san
     cnn_type       = 'efficientnetv2-s'
     
@@ -47,14 +46,14 @@ class CFG:
     intensity_model= './multihop_fold0_intensity_best.pth'
     device         = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-    class_weight_gradient = torch.tensor([4.875,1,3]).to(device)
+    class_weight_gradient = torch.tensor([4.875,1,3])
 
-    class_weight_gradient_humour = torch.tensor([2,1]).float().to(device)
-    class_weight_gradient_sarcasm = torch.tensor([2,1]).float().to(device)
-    class_weight_gradient_offensive = torch.tensor([1.25,2]).float().to(device)
-    class_weight_gradient_motivation = torch.tensor([1,1.25]).float().to(device)
+    class_weight_gradient_humour = torch.tensor([2,1]).float()
+    class_weight_gradient_sarcasm = torch.tensor([2,1]).float()
+    class_weight_gradient_offensive = torch.tensor([1.25,2]).float()
+    class_weight_gradient_motivation = torch.tensor([1,1.25]).float()
 
-    class_weight_gradient_intensity_humour = torch.tensor([0.08,0.27,0.52,0.13]).float().to(device) # 3.99,1,1.96,6.65
-    class_weight_gradient_intensity_sarcasm = torch.tensor([1,2.2,3.62,12.86]).float().to(device)
-    class_weight_gradient_intensity_offensive = torch.tensor([1,4.68,9.79,28.47]).float().to(device)
-    class_weight_gradient_intensity_motivation = torch.tensor([1,23.48]).float().to(device)
+    class_weight_gradient_intensity_humour = torch.tensor([0.08,0.27,0.52,0.13]).float() # 3.99,1,1.96,6.65
+    class_weight_gradient_intensity_sarcasm = torch.tensor([1,2.2,3.62,12.86]).float()
+    class_weight_gradient_intensity_offensive = torch.tensor([1,4.68,9.79,28.47]).float()
+    class_weight_gradient_intensity_motivation = torch.tensor([1,23.48]).float()
