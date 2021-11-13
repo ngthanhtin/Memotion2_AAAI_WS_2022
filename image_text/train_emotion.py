@@ -35,7 +35,9 @@ from utils.config import CFG
 from utils.clean_text import *
 
 # manually fix batch size
-CFG.batch_size = 4
+CFG.batch_size = 10
+CFG.model_name = 'multihop'
+CFG.learning_rate = 2e-5
 
 def seed_torch(seed=42):
     random.seed(seed)

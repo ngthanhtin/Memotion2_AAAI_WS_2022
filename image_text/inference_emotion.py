@@ -33,7 +33,8 @@ from utils.config import CFG
 from utils.clean_text import *
 
 # manually fix batch size
-CFG.batch_size = 4
+CFG.batch_size = 10
+CFG.model_name = 'san'
 
 def seed_torch(seed=42):
     random.seed(seed)
