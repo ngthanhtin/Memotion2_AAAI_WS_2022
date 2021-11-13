@@ -45,6 +45,7 @@ CFG.max_len = 35
 CFG.batch_size = 15
 CFG.epochs = 10
 CFG.learning_rate = 2e-5
+CFG.device = 'cuda:2'
 
 def seed_torch(seed=42):
     random.seed(seed)
@@ -240,7 +241,7 @@ def train_loop(trn_idx, val_idx):
                         'optimizer': optimizer.state_dict(), 
                         'scheduler': scheduler.state_dict()
                         },
-                        f'onlytext_fold{train_fold}test_sentiment_best.pth')
+                        f'onlytext_fold{train_fold}_sentiment_best.pth')
             if f1_mavg > best_f1_mavg:
                 best_f1_mavg = f1_mavg
             if acc > best_acc:

@@ -45,6 +45,7 @@ CFG.max_len = 35
 CFG.batch_size = 15
 CFG.epochs = 10
 CFG.learning_rate = 2e-5
+CFG.device = 'cuda:2'
 
 def seed_torch(seed=42):
     random.seed(seed)
@@ -83,7 +84,7 @@ def train_loop(trn_idx, val_idx):
         CFG.test_path, roberta_tokenizer, CFG.max_len, transform=get_transforms(data = 'train')) 
     # 
     trainloader = DataLoader(train_data, batch_size=CFG.batch_size, shuffle=True, drop_last = True, num_workers=4) # if have sampler, dont use shuffle
-    testloader = DataLoader(test_data, batch_size=5, drop_last=True, shuffle=False, num_workers=4)
+    testloader = DataLoader(test_data, batch_size=CFG.batch_size, drop_last=False, shuffle=False, num_workers=4)
     
     # ====================================================
     # scheduler 

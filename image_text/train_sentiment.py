@@ -38,8 +38,9 @@ from utils.clean_text import *
 
 # manually fix batch size
 CFG.batch_size = 10
-CFG.model_name = 'san'
-
+CFG.model_name = 'multihop'
+CFG.learning_rate = 2e-5
+CFG.device = 'cuda:1'
 def seed_torch(seed=42):
     random.seed(seed)
     os.environ['PYTHONHASHSEED'] = str(seed)
@@ -58,11 +59,11 @@ def train_loop(trn_idx, val_idx):
     # val_input_tensor_pad = [input_tensor_pad[index] for index in val_idx]
     # val_target_tensor = [target_tensor[index] for index in val_idx]
     # #create sampler
-    weights, weight_class = calculateWeights(target_tensor)
-    weights = torch.FloatTensor(weights)
-    weight_class = torch.FloatTensor(weight_class).to(CFG.device)
-    print('weights: ', weights)
-    sampler = torch.utils.data.sampler.WeightedRandomSampler(weights, len(weights), replacement=True)
+    # weights, weight_class = calculateWeights(target_tensor)
+    # weights = torch.FloatTensor(weights)
+    # weight_class = torch.FloatTensor(weight_class).to(CFG.device)
+    # print('weights: ', weights)
+    # sampler = torch.utils.data.sampler.WeightedRandomSampler(weights, len(weights), replacement=True)
 
     # train_data = MemoDataset_Sentiment(train_images[trn_idx], train_input_tensor_pad, train_target_tensor, root_dir = CFG.train_path, transform=get_transforms(data = 'train'))
     # test_data = MemoDataset_Sentiment(train_images[val_idx], val_input_tensor_pad, val_target_tensor, root_dir = CFG.train_path, transform=get_transforms(data = 'train')) 
@@ -108,7 +109,7 @@ def train_loop(trn_idx, val_idx):
     params = list(model.parameters()) + list(classifier.parameters())
 
     # Loss and optimizer
-    criterion = nn.CrossEntropyLoss(weight = CFG.class_weight_gradient) #  weight_class
+    criterion = nn.CrossEntropyLoss(weight = CFG.class_weight_gradient.to(CFG.device)) #  weight_class
     # criterion = CB_loss
     optimizer = torch.optim.Adam(params, lr = CFG.learning_rate, weight_decay=CFG.weight_decay)
     scheduler = get_scheduler(optimizer)
@@ -247,7 +248,7 @@ def train_loop(trn_idx, val_idx):
                         'optimizer': optimizer.state_dict(), 
                         'scheduler': scheduler.state_dict()
                         },
-                        f'{CFG.model_name}_fold{train_fold}test_sentiment_best.pth')
+                        f'{CFG.model_name}_fold{train_fold}_sentiment_best.pth')
                 
 
             print(f'Accuracy of the network on the test set after Epoch {epoch+1} is: {acc} %')        

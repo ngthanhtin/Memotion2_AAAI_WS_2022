@@ -50,7 +50,7 @@ def inference_sentiment():
     
     testloader = DataLoader(test_data, batch_size=CFG.batch_size, drop_last=False, shuffle=False, num_workers=4)
     #load full model
-    states = torch.load('onlytext_fold0test_sentiment_best.pth', map_location = torch.device('cpu'))
+    states = torch.load('onlytext_fold0_sentiment_best.pth', map_location = torch.device('cpu'))
 
     model = RobertaForSequenceClassification.from_pretrained("distilroberta-base", num_labels=CFG.n_sentiment_classes)
     model.to(CFG.device)
