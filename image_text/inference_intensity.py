@@ -52,7 +52,7 @@ def inference_intensity():
     testloader = DataLoader(test_data, batch_size=CFG.batch_size, drop_last=False, shuffle=False, num_workers=4)
 
     #load full model
-    states = torch.load(f'{CFG.model_name}_filter_fold0_intensity_best.pth', map_location = torch.device('cpu'))
+    states = torch.load(f'{CFG.model_name}_fold0_intensity_best.pth', map_location = torch.device('cpu'))
     if CFG.model_name == 'multihop':
         model = MemoLSTM_MHA(CFG.batch_size, CFG.n_sentiment_classes, CFG.units, len(tokenizer.stoi), CFG.embedding_dim, CFG.hidden_d, \
          CFG.dropout, CFG.n_layers, CFG.cnn_type, CFG.device)
