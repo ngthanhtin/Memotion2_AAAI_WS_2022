@@ -45,7 +45,7 @@ class MemoDataset_Sentiment(Dataset):
             else:
                 image = self.val_transform(image)
         else:
-            preproc_img = self.val_transform(image)
+            image = self.val_transform(image)
 
         return (image, input_id, target)
 
