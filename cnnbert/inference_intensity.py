@@ -60,8 +60,9 @@ def inference_intensity():
             n_sarcasm_classes=CFG.n_intensity_classes[1], n_offensive_classes=CFG.n_intensity_classes[2], n_motivation_classes=CFG.n_intensity_classes[3])
 
     #load full model
-    # states = torch.load(f'{CFG.model_name}_fold0_intensity_best.pth', map_location = torch.device('cpu'))
-    states = torch.load(f'{CFG.model_name}_fold0_intensity_best.pth', map_location = torch.device('cpu'))
+    # path_file = f'{CFG.model_name}_fold0_intensity_best.pth'
+    path_file = '/home/tinvn/TIN/MEME_Challenge/code/temp_best/best_cnnbert/san/cnnbert_san_fold0_intensity_best_epoch15_584.pth'
+    states = torch.load(path_file, map_location = torch.device('cpu'))
     model.load_state_dict(states['model'])
     model.to(CFG.device)
 

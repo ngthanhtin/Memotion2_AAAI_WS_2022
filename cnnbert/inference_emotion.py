@@ -31,7 +31,7 @@ from utils.config import CFG
 from utils.clean_text import *
 # manually fix batch size
 CFG.batch_size = 10
-CFG.model_name = 'cnnbert_san'
+CFG.model_name = 'cnnbert_concat'
 CFG.device = 'cuda:1'
 
 def seed_torch(seed=42):
@@ -59,7 +59,9 @@ def inference_emotion():
         model = CNN_Roberta_SAN(roberta_model_name = 'distilroberta-base', cnn_type = CFG.cnn_type)
     
     #load full model
-    states = torch.load(f'{CFG.model_name}_fold0_emotion_best.pth', map_location = torch.device('cpu'))
+    # path_file = f'{CFG.model_name}_fold0_emotion_best.pth'
+    path_file = '/home/tinvn/TIN/MEME_Challenge/code/temp_best/best_cnnbert/concat/cnnbert_concat_fold0_emotion_best_epoch24_7141.pth'
+    states = torch.load(path_file, map_location = torch.device('cpu'))
     model.load_state_dict(states['model'])
     model.to(CFG.device)
         

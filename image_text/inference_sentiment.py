@@ -36,7 +36,7 @@ from utils.clean_text import *
 
 # manually fix batch size
 CFG.batch_size = 10
-CFG.model_name = 'san'
+CFG.model_name = 'multihop'
 print("Inference {}".format(CFG.model_name))
 
 def seed_torch(seed=42):
@@ -55,7 +55,9 @@ def inference_sentiment():
     
     testloader = DataLoader(test_data, batch_size=CFG.batch_size, drop_last=False, shuffle=False, num_workers=4)
     #load full model
-    states = torch.load(f'{CFG.model_name}_fold0_sentiment_best.pth', map_location = torch.device('cpu'))
+    path_file = '/home/tinvn/TIN/MEME_Challenge/code/temp_best/best_image_text/multihop/pretrained true/multihop_fold0_sentiment_best_epoch3_5316.pth'
+    # path_file = f'{CFG.model_name}_fold0_sentiment_best.pth'
+    states = torch.load(path_file, map_location = torch.device('cpu'))
 
     if CFG.model_name == 'multihop':
         model = MemoLSTM_MHA(CFG.batch_size, CFG.n_sentiment_classes, CFG.units, len(tokenizer.stoi), CFG.embedding_dim, CFG.hidden_d, \
