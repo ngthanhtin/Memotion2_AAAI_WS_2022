@@ -28,7 +28,7 @@ from utils.transformation import get_transforms
 from utils.dataset_unimodal import MemoDataset_Sentiment
 from utils.tokenizer import Tokenizer
 # import models
-from models.model_cnnbert import CNN_Roberta_Concat, CNN_Roberta_SAN
+from models.model_cnnbert import CNN_Roberta_Concat, CNN_Roberta_SAN, CNN_Roberta_Concat_HybridFusion
 from transformers import BertTokenizer, RobertaTokenizer
 ###
 from models.classifier import ClassifierLSTM_Sentiment
@@ -38,7 +38,7 @@ from utils.radam.radam import RAdam
 from utils.lookahead.optimizer import Lookahead
 # manually fix batch size
 CFG.batch_size = 10
-CFG.model_name = 'cnnbert_san'
+CFG.model_name = 'cnnbert_fusion'
 CFG.learning_rate = 2e-5
 CFG.device = 'cuda:2'
 
@@ -69,7 +69,7 @@ def train_loop(trn_idx, val_idx):
     # train_data = MemoDataset_Sentiment(train_images[trn_idx], train_input_tensor_pad, train_target_tensor, root_dir = CFG.train_path, transform=get_transforms(data = 'train'))
     # test_data = MemoDataset_Sentiment(train_images[val_idx], val_input_tensor_pad, val_target_tensor, root_dir = CFG.train_path, transform=get_transforms(data = 'train')) 
 
-    if CFG.model_name == "cnnbert_concat" or CFG.model_name == 'cnnbert_san':
+    if CFG.model_name == "cnnbert_concat" or CFG.model_name == 'cnnbert_san' or CFG.model_name == 'cnnbert_fusion':
         train_data = MemoDataset_Sentiment(np.array(train_images), x, target_tensor, CFG.train_path, \
             roberta_tokenizer, CFG.max_len, transform=get_transforms(data = 'train')) 
         test_data = MemoDataset_Sentiment(np.array(test_images), xtest, target_tensor_test, CFG.test_path, \
@@ -99,7 +99,9 @@ def train_loop(trn_idx, val_idx):
         model = CNN_Roberta_Concat(roberta_model_name = 'distilroberta-base', cnn_type = CFG.cnn_type, num_classes=CFG.n_sentiment_classes)
     elif CFG.model_name == 'cnnbert_san':
         model = CNN_Roberta_SAN(roberta_model_name = 'distilroberta-base', cnn_type = CFG.cnn_type, num_classes=CFG.n_sentiment_classes, device=CFG.device)
-    
+    elif CFG.model_name == 'cnnbert_fusion':
+        model = CNN_Roberta_Concat_HybridFusion(roberta_model_name = 'distilroberta-base', cnn_type = CFG.cnn_type, num_classes=CFG.n_sentiment_classes)
+
     model.to(CFG.device)
     params = list(model.parameters())
 

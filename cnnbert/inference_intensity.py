@@ -23,14 +23,14 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 from utils.transformation import get_transforms
 from utils.dataset_unimodal import MemoDataset_Emotion
 # import models
-from models.model_cnnbert import CNN_Roberta_Concat_Intensity, CNN_Roberta_SAN_Intensity
+from models.model_cnnbert import CNN_Roberta_Concat_Intensity, CNN_Roberta_SAN_Intensity, CNN_Roberta_Concat_Intensity_HybridFusion
 from transformers import BertTokenizer, RobertaTokenizer
 ###
 from utils.config import CFG
 from utils.clean_text import *
 # manually fix batch size
 CFG.batch_size = 10
-CFG.model_name = 'cnnbert_san'
+CFG.model_name = 'cnnbert_fusion'
 CFG.device = 'cuda:0'
 
 def seed_torch(seed=42):
@@ -45,7 +45,7 @@ seed_torch(seed = CFG.seed)
 
 def inference_intensity():
 
-    if CFG.model_name == "cnnbert_concat" or CFG.model_name == 'cnnbert_san':
+    if CFG.model_name == "cnnbert_concat" or CFG.model_name == 'cnnbert_san' or CFG.model_name == 'cnnbert_fusion':
         test_data = MemoDataset_Emotion(np.array(test_images), xtest, humour_ytest, sarcasm_ytest, offensive_ytest, motivational_ytest, \
         CFG.test_path, roberta_tokenizer, CFG.max_len, transform=None, task='intensity') 
   
@@ -58,10 +58,13 @@ def inference_intensity():
     elif CFG.model_name == 'cnnbert_san':
         model = CNN_Roberta_SAN_Intensity(roberta_model_name = 'distilroberta-base', cnn_type = CFG.cnn_type, n_humour_classes=CFG.n_intensity_classes[0], \
             n_sarcasm_classes=CFG.n_intensity_classes[1], n_offensive_classes=CFG.n_intensity_classes[2], n_motivation_classes=CFG.n_intensity_classes[3])
-
+    elif CFG.model_name == 'cnnbert_fusion':
+        model = CNN_Roberta_Concat_Intensity_HybridFusion(roberta_model_name = 'distilroberta-base', cnn_type = CFG.cnn_type, n_humour_classes=CFG.n_intensity_classes[0], \
+            n_sarcasm_classes=CFG.n_intensity_classes[1], n_offensive_classes=CFG.n_intensity_classes[2], n_motivation_classes=CFG.n_intensity_classes[3])
+    
     #load full model
-    # path_file = f'{CFG.model_name}_fold0_intensity_best.pth'
-    path_file = '/home/tinvn/TIN/MEME_Challenge/code/temp_best/best_cnnbert/san/cnnbert_san_fold0_intensity_best_epoch15_584.pth'
+    path_file = f'{CFG.model_name}_fold0_intensity_best.pth'
+    # path_file = '/home/tinvn/TIN/MEME_Challenge/code/temp_best/best_cnnbert/san/cnnbert_san_fold0_intensity_best_epoch15_584.pth'
     states = torch.load(path_file, map_location = torch.device('cpu'))
     model.load_state_dict(states['model'])
     model.to(CFG.device)

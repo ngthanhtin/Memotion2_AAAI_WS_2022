@@ -25,7 +25,7 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 from utils.transformation import get_transforms
 from utils.dataset_unimodal import MemoDataset_Emotion
 # import models
-from models.model_cnnbert import CNN_Roberta_Concat_Intensity, CNN_Roberta_SAN_Intensity
+from models.model_cnnbert import CNN_Roberta_Concat_Intensity, CNN_Roberta_SAN_Intensity, CNN_Roberta_Concat_Intensity_HybridFusion
 from transformers import BertTokenizer, RobertaTokenizer
 ###
 from utils.config import CFG
@@ -36,7 +36,7 @@ from utils.lookahead.optimizer import Lookahead
 from utils.tsa_ce_loss import TSA_crossEntropy
 # manually fix batch size
 CFG.batch_size = 10
-CFG.model_name = 'cnnbert_san'
+CFG.model_name = 'cnnbert_fusion'
 CFG.learning_rate = 2e-5
 CFG.device = 'cuda:2'
 
@@ -66,7 +66,7 @@ def train_loop(trn_idx, val_idx):
     # val_offensive = [offensive_y[index] for index in val_idx]
     # val_motivational = [motivational_y[index] for index in val_idx]
 
-    if CFG.model_name == "cnnbert_concat" or CFG.model_name == 'cnnbert_san':
+    if CFG.model_name == "cnnbert_concat" or CFG.model_name == 'cnnbert_san' or CFG.model_name == 'cnnbert_fusion':
         # train_data = MemoDataset_Emotion(train_images[trn_idx], train_input_tensor_pad, train_humour, train_sarcasm, train_offensive, train_motivational, \
         #     CFG.train_path, roberta_tokenizer, CFG.max_len, transform=get_transforms(data = 'train'), task='intensity') 
         # test_data = MemoDataset_Emotion(train_images[val_idx], val_input_tensor_pad, val_humour, val_sarcasm, val_offensive, val_motivational, \
@@ -103,6 +103,9 @@ def train_loop(trn_idx, val_idx):
             n_sarcasm_classes=CFG.n_intensity_classes[1], n_offensive_classes=CFG.n_intensity_classes[2], n_motivation_classes=CFG.n_intensity_classes[3])
     elif CFG.model_name == 'cnnbert_san':
         model = CNN_Roberta_SAN_Intensity(roberta_model_name = 'distilroberta-base', cnn_type = CFG.cnn_type, n_humour_classes=CFG.n_intensity_classes[0], \
+            n_sarcasm_classes=CFG.n_intensity_classes[1], n_offensive_classes=CFG.n_intensity_classes[2], n_motivation_classes=CFG.n_intensity_classes[3])
+    elif CFG.model_name == 'cnnbert_fusion':
+        model = CNN_Roberta_Concat_Intensity_HybridFusion(roberta_model_name = 'distilroberta-base', cnn_type = CFG.cnn_type, n_humour_classes=CFG.n_intensity_classes[0], \
             n_sarcasm_classes=CFG.n_intensity_classes[1], n_offensive_classes=CFG.n_intensity_classes[2], n_motivation_classes=CFG.n_intensity_classes[3])
         
     model.to(CFG.device)

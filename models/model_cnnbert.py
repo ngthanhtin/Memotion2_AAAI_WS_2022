@@ -64,7 +64,7 @@ class CNN_Roberta_Concat(nn.Module):
         self.roberta_clf = RobertaClasasificationHead(self.roberta.config)
         
         # vision
-        self.cnn = CNN(is_pretrained=False, type_=cnn_type, num_classes=num_classes)
+        self.cnn = CNN(is_pretrained=True, type_=cnn_type, num_classes=num_classes)
         self.dropout = nn.Dropout(p=0.2)
 
         # self.swish = MemoryEfficientSwish()
@@ -85,6 +85,50 @@ class CNN_Roberta_Concat(nn.Module):
         
         return combined_y_pred
 
+class CNN_Roberta_Concat_HybridFusion(nn.Module):
+    """
+    Use CNN and BERT, and use concatenation as fusion module
+    Hybrid Fusion known as Mid Fusion
+    """
+    def __init__(self,
+        roberta_model_name = 'distilroberta-base',
+        cnn_type = 'efficientnetv2-s',
+        num_classes =  3
+        ):
+        super().__init__()
+        # text
+        self.roberta = RobertaModel.from_pretrained(
+            roberta_model_name,
+            num_labels = num_classes,
+        )
+        self.roberta_clf = RobertaClasasificationHead(self.roberta.config)
+        
+        # vision
+        self.cnn = CNN(is_pretrained=True, type_=cnn_type, num_classes=num_classes)
+        self.dropout = nn.Dropout(p=0.2)
+
+        # self.swish = MemoryEfficientSwish()
+        self.output_fc_1 = nn.Linear(2*num_classes,num_classes)
+        self.output_fc_2 = nn.Linear(num_classes*3, num_classes)
+
+    def forward(self, indices, attn_mask, images):
+        roberta_out = self.roberta(
+            input_ids = indices, 
+            attention_mask =  attn_mask, 
+        )[0]
+        y_pred_roberta = self.roberta_clf(roberta_out)
+
+        y_pred_cnn = self.cnn(images)
+        y_pred_cnn = self.dropout(y_pred_cnn)
+        
+        concat_features_1 = torch.cat([y_pred_roberta, y_pred_cnn],dim=1)
+        y_pred_1 = self.dropout(self.output_fc_1(concat_features_1))
+
+        concat_features_2 = torch.cat([concat_features_1, y_pred_1], dim=1)
+        y_pred_2 = self.dropout(self.output_fc_2(concat_features_2))
+
+        return y_pred_2
+
 class CNN_Roberta_SAN(nn.Module):
     """
     Use CNN and BERT, and use attention as fusion module
@@ -100,7 +144,7 @@ class CNN_Roberta_SAN(nn.Module):
         self.roberta = RobertaModel.from_pretrained(roberta_model_name)
         self.roberta_fc = nn.Linear(768, 256)
         # vision
-        self.cnn = CNN(is_pretrained=False, type_=cnn_type)
+        self.cnn = CNN(is_pretrained=True, type_=cnn_type)
         # self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
 
         self.v_att = StackedAttention(num_stacks=2, img_feat_size=1792, ques_feat_size=CFG.max_len*256, att_size=2048, drop_ratio=0.2, device=device)
@@ -142,7 +186,7 @@ class CNN_Roberta_Concat_Intensity(nn.Module):
         self.roberta = RobertaModel.from_pretrained(roberta_model_name)
         self.roberta_fc = nn.Linear(768, 256)
         # vision
-        self.cnn = CNN(is_pretrained=False, type_=cnn_type)
+        self.cnn = CNN(is_pretrained=True, type_=cnn_type)
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
 
         self.drop = nn.Dropout(p=0.2)
@@ -175,6 +219,98 @@ class CNN_Roberta_Concat_Intensity(nn.Module):
 
         return (logits_humour, logits_sarcasm, logits_offensive, logits_motivation)
 
+class CNN_Roberta_Concat_Intensity_HybridFusion(nn.Module):
+    """
+    Use CNN and BERT, and use concatenation as fusion module
+    Hybrid Fusion
+    """
+    def __init__(self,
+        roberta_model_name = 'distilroberta-base',
+        cnn_type = 'efficientnetv2-s',
+        n_humour_classes=4, n_sarcasm_classes=4, n_offensive_classes=4, n_motivation_classes=2, device='cpu'
+        ):
+        super().__init__()
+        # text
+        self.roberta = RobertaModel.from_pretrained(roberta_model_name)
+        self.roberta_fc = nn.Linear(768, 256)
+        self.max_len = CFG.max_len
+        
+        self.out_humour_text = nn.Linear(self.max_len*256, n_humour_classes)
+        self.out_sarcasm_text = nn.Linear(self.max_len*256, n_sarcasm_classes)
+        self.out_offensive_text = nn.Linear(self.max_len*256, n_offensive_classes)
+        self.out_motivation_text = nn.Linear(self.max_len*256, n_motivation_classes)
+
+        # vision
+        self.cnn = CNN(is_pretrained=True, type_=cnn_type)
+        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+        self.out_humour_vision = nn.Linear(1792, n_humour_classes)
+        self.out_sarcasm_vision = nn.Linear(1792, n_sarcasm_classes)
+        self.out_offensive_vision = nn.Linear(1792, n_offensive_classes)
+        self.out_motivation_vision = nn.Linear(1792, n_motivation_classes)
+        #
+        self.drop = nn.Dropout(p=0.2)
+
+        
+        # classifier 1
+        self.out_humour = nn.Linear(self.max_len*256 + 1792, n_humour_classes)
+        self.out_sarcasm = nn.Linear(self.max_len*256 + 1792, n_sarcasm_classes)
+        self.out_offensive = nn.Linear(self.max_len*256 + 1792, n_offensive_classes)
+        self.out_motivation = nn.Linear(self.max_len*256 + 1792, n_motivation_classes)
+
+        #classifier 2
+        self.out_humour_2 = nn.Linear(3*n_humour_classes, n_humour_classes)
+        self.out_sarcasm_2 = nn.Linear(3*n_sarcasm_classes, n_sarcasm_classes)
+        self.out_offensive_2 = nn.Linear(3*n_offensive_classes, n_offensive_classes)
+        self.out_motivation_2 = nn.Linear(3*n_motivation_classes, n_motivation_classes)
+        
+    def forward(self, indices, attn_mask, images):
+        #text
+        roberta_out = self.roberta(
+            input_ids = indices, 
+            attention_mask =  attn_mask, 
+        )[0]
+        roberta_out = self.roberta_fc(roberta_out)
+        roberta_out = roberta_out.view(roberta_out.size(0), -1)
+
+        out_humour_text = self.out_humour_text(roberta_out)
+        out_sarcasm_text = self.out_sarcasm_text(roberta_out)
+        out_offensive_text = self.out_offensive_text(roberta_out)
+        out_motivation_text = self.out_motivation_text(roberta_out)
+
+        #vison
+        image_features = self.cnn(images)
+        image_features = self.avgpool(image_features)
+        image_features = image_features.view(image_features.size(0), -1)
+
+        out_humour_vision = self.out_humour_vision(image_features)
+        out_sarcasm_vision = self.out_sarcasm_vision(image_features)
+        out_offensive_vision = self.out_offensive_vision(image_features)
+        out_motivation_vision = self.out_motivation_vision(image_features)
+
+        #fusion 1
+        concat_features = torch.cat([roberta_out, image_features], dim=1)
+        concat_features = self.drop(concat_features)    
+        #classifier 1
+        logits_humour = self.out_humour(concat_features)
+        logits_sarcasm = self.out_sarcasm(concat_features)
+        logits_offensive = self.out_offensive(concat_features)
+        logits_motivation = self.out_motivation(concat_features)
+
+
+        # fusion 2
+        # concat classifer 1 with different classifiers
+        self.concat_humour = torch.cat([out_humour_text, out_humour_vision, logits_humour], dim=1)
+        self.concat_sarcasm = torch.cat([out_sarcasm_text, out_sarcasm_vision, logits_sarcasm], dim=1)
+        self.concat_offensive = torch.cat([out_offensive_text, out_offensive_vision, logits_offensive], dim=1)
+        self.concat_motivation = torch.cat([out_motivation_text, out_motivation_vision, logits_motivation], dim=1)
+
+        out_humour_2 = self.out_humour_2(self.concat_humour)
+        out_sarcasm_2 = self.out_sarcasm_2(self.concat_sarcasm)
+        out_offensive_2 = self.out_offensive_2(self.concat_offensive)
+        out_motivation_2 = self.out_motivation_2(self.concat_motivation)
+
+        return (out_humour_2, out_sarcasm_2, out_offensive_2, out_motivation_2)
+
 class CNN_Roberta_SAN_Intensity(nn.Module):
     """
     Use CNN and BERT, and use attention as fusion module
@@ -189,7 +325,7 @@ class CNN_Roberta_SAN_Intensity(nn.Module):
         self.roberta = RobertaModel.from_pretrained(roberta_model_name, output_hidden_states=True)
         self.roberta_fc = nn.Linear(768, 256)
         # vision
-        self.cnn = CNN(is_pretrained=False, type_=cnn_type)
+        self.cnn = CNN(is_pretrained=True, type_=cnn_type)
         # self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
 
         #attention

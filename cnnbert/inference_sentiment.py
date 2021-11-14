@@ -26,7 +26,7 @@ from utils.transformation import get_transforms
 from utils.dataset_unimodal import MemoDataset_Sentiment
 from utils.tokenizer import Tokenizer
 # import models
-from models.model_cnnbert import CNN_Roberta_Concat, CNN_Roberta_SAN
+from models.model_cnnbert import CNN_Roberta_Concat, CNN_Roberta_SAN, CNN_Roberta_Concat_HybridFusion
 from transformers import BertTokenizer, RobertaTokenizer
 ###
 from models.classifier import ClassifierLSTM_Sentiment
@@ -35,7 +35,7 @@ from utils.clean_text import *
 
 # manually fix batch size
 CFG.batch_size = 10
-CFG.model_name = 'cnnbert_san'
+CFG.model_name = 'cnnbert_fusion'
 
 print("Inference {}".format(CFG.model_name))
 
@@ -59,7 +59,9 @@ def inference_sentiment():
         model = CNN_Roberta_Concat(roberta_model_name = 'distilroberta-base', cnn_type = CFG.cnn_type, num_classes=CFG.n_sentiment_classes)
     elif CFG.model_name == 'cnnbert_san':
         model = CNN_Roberta_SAN(roberta_model_name = 'distilroberta-base', cnn_type = CFG.cnn_type, num_classes=CFG.n_sentiment_classes, device=CFG.device)
-    
+    elif CFG.model_name == 'cnnbert_fusion':
+        model = CNN_Roberta_Concat_HybridFusion(roberta_model_name = 'distilroberta-base', cnn_type = CFG.cnn_type, num_classes=CFG.n_sentiment_classes)
+        
     #load full model
     states = torch.load(f'{CFG.model_name}_fold0_sentiment_best.pth', map_location = torch.device('cpu'))
     model.load_state_dict(states['model'])

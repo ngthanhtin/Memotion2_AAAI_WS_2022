@@ -25,7 +25,7 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 from utils.transformation import get_transforms
 from utils.dataset_unimodal import MemoDataset_Emotion
 # import models
-from models.model_cnnbert import CNN_Roberta_Concat, CNN_Roberta_SAN
+from models.model_cnnbert import CNN_Roberta_Concat, CNN_Roberta_SAN, CNN_Roberta_Concat_HybridFusion
 from transformers import BertTokenizer, RobertaTokenizer
 ###
 from utils.config import CFG
@@ -34,7 +34,7 @@ from utils.radam.radam import RAdam
 from utils.lookahead.optimizer import Lookahead
 # manually fix batch size
 CFG.batch_size = 10
-CFG.model_name = 'cnnbert_san'
+CFG.model_name = 'cnnbert_fusion'
 CFG.learning_rate = 2e-5
 CFG.device = 'cuda:0'
 
@@ -64,7 +64,7 @@ def train_loop(trn_idx, val_idx):
     # val_offensive = [offensive_y[index] for index in val_idx]
     # val_motivational = [motivational_y[index] for index in val_idx]
 
-    if CFG.model_name == "cnnbert_concat" or CFG.model_name == 'cnnbert_san':
+    if CFG.model_name == "cnnbert_concat" or CFG.model_name == 'cnnbert_san' or CFG.model_name == 'cnnbert_fusion':
         # train_data = MemoDataset_Emotion(train_images[trn_idx], train_input_tensor_pad, train_humour, train_sarcasm, train_offensive, train_motivational, \
         #     CFG.train_path, roberta_tokenizer, CFG.max_len, transform=get_transforms(data = 'train'), task='emotion') 
         # test_data = MemoDataset_Emotion(train_images[val_idx], val_input_tensor_pad, val_humour, val_sarcasm, val_offensive, val_motivational, \
@@ -99,7 +99,8 @@ def train_loop(trn_idx, val_idx):
         model = CNN_Roberta_Concat(roberta_model_name = 'distilroberta-base', cnn_type = CFG.cnn_type, num_classes=4)
     elif CFG.model_name == 'cnnbert_san':
         model = CNN_Roberta_SAN(roberta_model_name = 'distilroberta-base', cnn_type = CFG.cnn_type, num_classes=4)
-    
+    elif CFG.model_name == 'cnnbert_fusion':
+        model =model = CNN_Roberta_Concat_HybridFusion(roberta_model_name = 'distilroberta-base', cnn_type = CFG.cnn_type, num_classes=4)
     model.to(CFG.device)
     params = list(model.parameters())
 

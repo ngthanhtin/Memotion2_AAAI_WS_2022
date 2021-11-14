@@ -24,14 +24,14 @@ from utils.transformation import get_transforms
 from utils.dataset_unimodal import MemoDataset_Emotion
 from utils.tokenizer import Tokenizer
 # import models
-from models.model_cnnbert import CNN_Roberta_Concat, CNN_Roberta_SAN
+from models.model_cnnbert import CNN_Roberta_Concat, CNN_Roberta_SAN, CNN_Roberta_Concat_HybridFusion
 from transformers import BertTokenizer, RobertaTokenizer
 ###
 from utils.config import CFG
 from utils.clean_text import *
 # manually fix batch size
 CFG.batch_size = 10
-CFG.model_name = 'cnnbert_concat'
+CFG.model_name = 'cnnbert_fusion'
 CFG.device = 'cuda:1'
 
 def seed_torch(seed=42):
@@ -57,10 +57,11 @@ def inference_emotion():
         model = CNN_Roberta_Concat(roberta_model_name = 'distilroberta-base', cnn_type = CFG.cnn_type, num_classes=4)
     elif CFG.model_name == 'cnnbert_san':
         model = CNN_Roberta_SAN(roberta_model_name = 'distilroberta-base', cnn_type = CFG.cnn_type)
-    
+    elif CFG.model_name == 'cnnbert_fusion':
+        model = CNN_Roberta_Concat_HybridFusion(roberta_model_name = 'distilroberta-base', cnn_type = CFG.cnn_type, num_classes=4)
     #load full model
-    # path_file = f'{CFG.model_name}_fold0_emotion_best.pth'
-    path_file = '/home/tinvn/TIN/MEME_Challenge/code/temp_best/best_cnnbert/concat/cnnbert_concat_fold0_emotion_best_epoch24_7141.pth'
+    path_file = f'{CFG.model_name}_fold0_emotion_best.pth'
+    # path_file = '/home/tinvn/TIN/MEME_Challenge/code/temp_best/best_cnnbert/concat/cnnbert_concat_fold0_emotion_best_epoch24_7141.pth'
     states = torch.load(path_file, map_location = torch.device('cpu'))
     model.load_state_dict(states['model'])
     model.to(CFG.device)
