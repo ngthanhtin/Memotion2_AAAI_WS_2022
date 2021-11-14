@@ -34,9 +34,9 @@ from utils.radam.radam import RAdam
 from utils.lookahead.optimizer import Lookahead
 # manually fix batch size
 CFG.batch_size = 10
-CFG.model_name = 'cnnbert_concat'
-CFG.learning_rate = 2e-4
-CFG.device = 'cuda:1'
+CFG.model_name = 'cnnbert_san'
+CFG.learning_rate = 2e-5
+CFG.device = 'cuda:0'
 
 def seed_torch(seed=42):
     random.seed(seed)
@@ -72,10 +72,10 @@ def train_loop(trn_idx, val_idx):
         train_data = MemoDataset_Emotion(train_images, x, humour_y, sarcasm_y, offensive_y, motivational_y, \
             CFG.train_path, roberta_tokenizer, CFG.max_len, transform=get_transforms(data = 'train'), task='emotion') 
         test_data = MemoDataset_Emotion(test_images, xtest, humour_ytest, sarcasm_ytest, offensive_ytest, motivational_ytest, \
-            CFG.train_path, roberta_tokenizer, CFG.max_len, transform=None, task='emotion') 
+            CFG.test_path, roberta_tokenizer, CFG.max_len, transform=None, task='emotion') 
     
     trainloader = DataLoader(train_data, batch_size=CFG.batch_size, drop_last = True, shuffle=True, num_workers=4)    
-    testloader = DataLoader(test_data, batch_size=CFG.batch_size, drop_last=True, shuffle=False, num_workers=4)
+    testloader = DataLoader(test_data, batch_size=CFG.batch_size, drop_last=False, shuffle=False, num_workers=4)
 
     # ====================================================
     # scheduler 

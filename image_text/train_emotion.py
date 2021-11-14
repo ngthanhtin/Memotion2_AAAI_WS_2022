@@ -28,7 +28,6 @@ from utils.tokenizer import Tokenizer
 # import models
 from models.model_mha import MemoLSTM_MHA
 from models.model_san import MemoLSTM_SAN
-from models.model_cnnbert import CNN_Roberta_Concat, CNN_Roberta_SAN
 ###
 from models.classifier import ClassifierLSTM_Emotion
 from utils.config import CFG
@@ -38,7 +37,8 @@ from utils.clean_text import *
 CFG.batch_size = 10
 CFG.model_name = 'san'
 CFG.learning_rate = 2e-5
-CFG.epochs = 9 # san , 9: multihop
+# CFG.epochs = 9 # san , 9: multihop
+CFG.device = 'cuda:0'
 
 def seed_torch(seed=42):
     random.seed(seed)
@@ -103,10 +103,6 @@ def train_loop(trn_idx, val_idx):
     elif CFG.model_name == 'san':
         model = MemoLSTM_SAN(CFG.batch_size, CFG.n_sentiment_classes, CFG.units, len(tokenizer.stoi), CFG.embedding_dim, CFG.hidden_d, \
          CFG.dropout, CFG.n_layers, CFG.cnn_type, CFG.device)
-    elif CFG.model_name == 'cnnbert_concat':
-        model = CNN_Roberta_Concat(roberta_model_name = 'distilroberta-base', cnn_type = CFG.cnn_type, num_classes=CFG.n_sentiment_classes)
-    elif CFG.model_name == 'cnnbert_san':
-        model = CNN_Roberta_SAN(roberta_model_name = 'distilroberta-base', cnn_type = CFG.cnn_type, num_classes=CFG.n_sentiment_classes)
         
     classifier = ClassifierLSTM_Emotion(CFG.hidden_d, CFG.hidden_d2, CFG.n_emotion_classes, CFG.dropout, CFG.n_layers)
 

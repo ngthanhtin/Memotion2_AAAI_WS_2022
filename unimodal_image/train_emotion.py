@@ -52,25 +52,30 @@ def seed_torch(seed=42):
 seed_torch(seed = CFG.seed)
 
 def train_loop(trn_idx, val_idx):
-
-    print('Training with fold {} started'.format(train_fold))
-    #train
-    train_humour = [humour_y[index] for index in trn_idx]
-    train_sarcasm = [sarcasm_y[index] for index in trn_idx]
-    train_offensive = [offensive_y[index] for index in trn_idx]
-    train_motivational = [motivational_y[index] for index in trn_idx]
-    #val
-    val_humour = [humour_y[index] for index in val_idx]
-    val_sarcasm = [sarcasm_y[index] for index in val_idx]
-    val_offensive = [offensive_y[index] for index in val_idx]
-    val_motivational = [motivational_y[index] for index in val_idx]
+    train_fold = 0
+    # print('Training with fold {} started'.format(train_fold))
+    # #train
+    # train_humour = [humour_y[index] for index in trn_idx]
+    # train_sarcasm = [sarcasm_y[index] for index in trn_idx]
+    # train_offensive = [offensive_y[index] for index in trn_idx]
+    # train_motivational = [motivational_y[index] for index in trn_idx]
+    # #val
+    # val_humour = [humour_y[index] for index in val_idx]
+    # val_sarcasm = [sarcasm_y[index] for index in val_idx]
+    # val_offensive = [offensive_y[index] for index in val_idx]
+    # val_motivational = [motivational_y[index] for index in val_idx]
 
     # only get image
-    train_data = MemoDataset_Emotion(train_images[trn_idx], None, train_humour, train_sarcasm, train_offensive, train_motivational \
+    # train_data = MemoDataset_Emotion(train_images[trn_idx], None, train_humour, train_sarcasm, train_offensive, train_motivational \
+    #     , CFG.train_path, None, None, transform=get_transforms(data = 'train'), task='emotion') 
+    # test_data = MemoDataset_Emotion(train_images[val_idx], None, val_humour, val_sarcasm, val_offensive, val_motivational, \
+    #     CFG.train_path, None, None, transform=None, task='emotion') 
+    
+    train_data = MemoDataset_Emotion(train_images, None, humour_y, sarcasm_y, offensive_y, motivational_y \
         , CFG.train_path, None, None, transform=get_transforms(data = 'train'), task='emotion') 
-    test_data = MemoDataset_Emotion(train_images[val_idx], None, val_humour, val_sarcasm, val_offensive, val_motivational, \
-        CFG.train_path, None, None, transform=None, task='emotion') 
-    # 
+    test_data = MemoDataset_Emotion(test_images, None, humour_ytest, sarcasm_ytest, offensive_ytest, motivational_ytest, \
+        CFG.test_path, None, None, transform=None, task='emotion') 
+
     trainloader = DataLoader(train_data, batch_size=CFG.batch_size, shuffle=True, drop_last = True, num_workers=4) # if have sampler, dont use shuffle
     testloader = DataLoader(test_data, batch_size=CFG.batch_size, drop_last=False, shuffle=False, num_workers=4)
     
@@ -93,7 +98,7 @@ def train_loop(trn_idx, val_idx):
 
     # states = torch.load(CFG.sentiment_model,  map_location=torch.device('cpu'))
     model = CNN(is_pretrained=False, type_=CFG.cnn_type)# B, C, W,H B, 1792, 7, 7
-    classifier = Classifier_Emotion(hidden_d=1792, hidden_d2=500, n_classes=CFG.n_emotion_classes, dropout=CFG.dropout, use_cbam=True)
+    classifier = Classifier_Emotion(hidden_d=1792, hidden_d2=500, n_classes=CFG.n_emotion_classes, dropout=CFG.dropout, use_cbam=False)
     # model.load_state_dict(states['model'])
     model.to(CFG.device)
     classifier.to(CFG.device)
@@ -439,13 +444,14 @@ humour_y, sarcasm_y, offensive_y, motivational_y = textlabel_to_digitallabel(hum
 humour_ytest, sarcasm_ytest, offensive_ytest, motivational_ytest = textlabel_to_digitallabel(humour_ytest, sarcasm_ytest, offensive_ytest, motivational_ytest)
 
 # train fold
-y = [] # aggregated labels such as: [[0,0, 1, 1], [0,1, 0, 1], , [1,1, 1, 1], [1,0, 1,0], [1,0, 1, 1]]
-for i in range(len(humour_y)):
-    y.append([humour_y[i], sarcasm_y[i], offensive_y[i], motivational_y[i]])
+# y = [] # aggregated labels such as: [[0,0, 1, 1], [0,1, 0, 1], , [1,1, 1, 1], [1,0, 1,0], [1,0, 1, 1]]
+# for i in range(len(humour_y)):
+#     y.append([humour_y[i], sarcasm_y[i], offensive_y[i], motivational_y[i]])
 
-for train_fold in CFG.trn_fold:
-    folds = MultilabelStratifiedKFold(n_splits = CFG.n_fold, shuffle = True, random_state = CFG.seed).split(train_images, y)
-    for fold, (trn_idx, val_idx) in enumerate(folds):
-        if fold == train_fold:  
-            train_loop(trn_idx, val_idx)
+# for train_fold in CFG.trn_fold:
+#     folds = MultilabelStratifiedKFold(n_splits = CFG.n_fold, shuffle = True, random_state = CFG.seed).split(train_images, y)
+#     for fold, (trn_idx, val_idx) in enumerate(folds):
+#         if fold == train_fold:  
+#             train_loop(trn_idx, val_idx)
 
+train_loop(0, 0)

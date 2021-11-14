@@ -61,7 +61,7 @@ def inference_intensity():
 
     #load full model
     # states = torch.load(f'{CFG.model_name}_fold0_intensity_best.pth', map_location = torch.device('cpu'))
-    states = torch.load(f'cnnbert_san_testaug_fold0_intensity_best.pth', map_location = torch.device('cpu'))
+    states = torch.load(f'{CFG.model_name}_fold0_intensity_best.pth', map_location = torch.device('cpu'))
     model.load_state_dict(states['model'])
     model.to(CFG.device)
 

@@ -65,9 +65,9 @@ class CNN_Roberta_Concat(nn.Module):
         
         # vision
         self.cnn = CNN(is_pretrained=False, type_=cnn_type, num_classes=num_classes)
-        self.dropout = nn.Dropout( p=0.1, inplace=True)
+        self.dropout = nn.Dropout(p=0.2)
 
-        self.swish = MemoryEfficientSwish()
+        # self.swish = MemoryEfficientSwish()
         self.output_fc = nn.Linear(2*num_classes,num_classes)
 
     def forward(self, indices, attn_mask, images):
@@ -81,7 +81,7 @@ class CNN_Roberta_Concat(nn.Module):
         y_pred_cnn = self.dropout(y_pred_cnn)
         
         combined_y_pred = torch.cat([y_pred_roberta, y_pred_cnn],dim=1)
-        combined_y_pred = self.swish(self.output_fc(combined_y_pred))
+        combined_y_pred = self.dropout(self.output_fc(combined_y_pred))
         
         return combined_y_pred
 
@@ -93,6 +93,7 @@ class CNN_Roberta_SAN(nn.Module):
         roberta_model_name = 'distilroberta-base',
         cnn_type = 'efficientnetv2-s',
         num_classes = 4, # is the no classes of Emotion
+        device = 'cpu'
         ):
         super().__init__()
         # text
@@ -102,16 +103,17 @@ class CNN_Roberta_SAN(nn.Module):
         self.cnn = CNN(is_pretrained=False, type_=cnn_type)
         # self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
 
-        self.v_att = StackedAttention(num_stacks=4, img_feat_size=1792, ques_feat_size=CFG.max_len*256, att_size=2048, drop_ratio=0.2)
+        self.v_att = StackedAttention(num_stacks=2, img_feat_size=1792, ques_feat_size=CFG.max_len*256, att_size=2048, drop_ratio=0.2, device=device)
 
-        self.drop = nn.Dropout( p=0.2)
-        self.out_emotion = nn.Linear(2048, num_classes)
+        self.drop = nn.Dropout(p=0.2)
+        self.out = nn.Linear(2048, num_classes)
 
     def forward(self, indices, attn_mask, images):
         roberta_out = self.roberta(
             input_ids = indices, 
             attention_mask =  attn_mask, 
         )[0]
+
         roberta_out = self.roberta_fc(roberta_out)
         textual_features = roberta_out.view(roberta_out.size(0), -1)
 
@@ -123,8 +125,8 @@ class CNN_Roberta_SAN(nn.Module):
         # Attention
         att = self.v_att(img_features, textual_features)
 
-        out_emotion = self.out_emotion(att)
-        return out_emotion
+        out = self.drop(self.out(att))
+        return out
 
 class CNN_Roberta_Concat_Intensity(nn.Module):
     """
@@ -133,7 +135,7 @@ class CNN_Roberta_Concat_Intensity(nn.Module):
     def __init__(self,
         roberta_model_name = 'distilroberta-base',
         cnn_type = 'efficientnetv2-s',
-        n_humour_classes=4, n_sarcasm_classes=4, n_offensive_classes=4, n_motivation_classes=2
+        n_humour_classes=4, n_sarcasm_classes=4, n_offensive_classes=4, n_motivation_classes=2, device='cpu'
         ):
         super().__init__()
         # text
@@ -143,14 +145,13 @@ class CNN_Roberta_Concat_Intensity(nn.Module):
         self.cnn = CNN(is_pretrained=False, type_=cnn_type)
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
 
-        self.drop = nn.Dropout( p=0.2)
+        self.drop = nn.Dropout(p=0.2)
 
-        self.swish = MemoryEfficientSwish()
-
-        self.out_humour = nn.Linear(25*256 + 1792, n_humour_classes)
-        self.out_sarcasm = nn.Linear(25*256 + 1792, n_sarcasm_classes)
-        self.out_offensive = nn.Linear(25*256 + 1792, n_offensive_classes)
-        self.out_motivation = nn.Linear(25*256 + 1792, n_motivation_classes)
+        self.max_len = CFG.max_len
+        self.out_humour = nn.Linear(self.max_len*256 + 1792, n_humour_classes)
+        self.out_sarcasm = nn.Linear(self.max_len*256 + 1792, n_sarcasm_classes)
+        self.out_offensive = nn.Linear(self.max_len*256 + 1792, n_offensive_classes)
+        self.out_motivation = nn.Linear(self.max_len*256 + 1792, n_motivation_classes)
 
     def forward(self, indices, attn_mask, images):
         roberta_out = self.roberta(
@@ -181,11 +182,11 @@ class CNN_Roberta_SAN_Intensity(nn.Module):
     def __init__(self,
         roberta_model_name = 'distilroberta-base',
         cnn_type = 'efficientnetv2-s',
-        n_humour_classes=4, n_sarcasm_classes=4, n_offensive_classes=4, n_motivation_classes=2
+        n_humour_classes=4, n_sarcasm_classes=4, n_offensive_classes=4, n_motivation_classes=2, device='cpu'
         ):
         super().__init__()
         # text
-        self.roberta = RobertaModel.from_pretrained(roberta_model_name)
+        self.roberta = RobertaModel.from_pretrained(roberta_model_name, output_hidden_states=True)
         self.roberta_fc = nn.Linear(768, 256)
         # vision
         self.cnn = CNN(is_pretrained=False, type_=cnn_type)
@@ -193,7 +194,7 @@ class CNN_Roberta_SAN_Intensity(nn.Module):
 
         #attention
         self.att_size = 2048
-        self.v_att = StackedAttention(num_stacks=2, img_feat_size=1792, ques_feat_size=CFG.max_len*256, att_size=self.att_size, drop_ratio=0.2)
+        self.v_att = StackedAttention(num_stacks=2, img_feat_size=1792, ques_feat_size=CFG.max_len*256, att_size=self.att_size, drop_ratio=0.2, device=device)
 
         self.drop = nn.Dropout(p=0.2)
 
@@ -207,6 +208,7 @@ class CNN_Roberta_SAN_Intensity(nn.Module):
             input_ids = indices, 
             attention_mask =  attn_mask, 
         )[0]
+
         roberta_out = self.roberta_fc(roberta_out)
         textual_features = roberta_out.view(roberta_out.size(0), -1)
 

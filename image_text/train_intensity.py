@@ -36,7 +36,7 @@ from utils.clean_text import *
 
 # manually fix batch size
 CFG.batch_size = 10
-CFG.epochs = 17
+# CFG.epochs = 17
 CFG.learning_rate = 2e-5
 CFG.model_name = 'san'
 CFG.device = 'cuda:1'

@@ -58,16 +58,12 @@ def inference_sentiment():
     if CFG.model_name == 'cnnbert_concat':
         model = CNN_Roberta_Concat(roberta_model_name = 'distilroberta-base', cnn_type = CFG.cnn_type, num_classes=CFG.n_sentiment_classes)
     elif CFG.model_name == 'cnnbert_san':
-        model = CNN_Roberta_SAN(roberta_model_name = 'distilroberta-base', cnn_type = CFG.cnn_type, num_classes=CFG.n_sentiment_classes)
+        model = CNN_Roberta_SAN(roberta_model_name = 'distilroberta-base', cnn_type = CFG.cnn_type, num_classes=CFG.n_sentiment_classes, device=CFG.device)
     
     #load full model
     states = torch.load(f'{CFG.model_name}_fold0_sentiment_best.pth', map_location = torch.device('cpu'))
     model.load_state_dict(states['model'])
     model.to(CFG.device)
-    if CFG.model_name == 'cnnbert_san':
-        classifier = ClassifierLSTM_Sentiment(CFG.hidden_d, CFG.hidden_d2, CFG.dropout, CFG.n_layers, CFG.n_sentiment_classes, CFG.device)
-        classifier.load_state_dict(states['classifier'])
-        classifier.to(CFG.device)
     
     best_acc = 0.
     # Validate the model
@@ -81,8 +77,6 @@ def inference_sentiment():
         n_samples = 0
         for i, batch_dict in enumerate(testloader):
             model.eval()
-            if CFG.model_name == 'cnnbert_san':
-                classifier.eval()
 
             indices = batch_dict['x_indices'].to(CFG.device)
             attn_mask = batch_dict['x_attn_mask'].to(CFG.device)
@@ -90,9 +84,6 @@ def inference_sentiment():
             labels = batch_dict['y_target'].to(CFG.device)
 
             outputs = model(indices, attn_mask, images)
-            if CFG.model_name == 'cnnbert_san':
-                lstm_input = torch.unsqueeze(outputs, 0)
-                outputs = classifier(lstm_input)
 
             # max returns (value ,index)
             _, predicted = torch.max(outputs.data, 1)

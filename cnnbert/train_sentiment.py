@@ -39,7 +39,8 @@ from utils.lookahead.optimizer import Lookahead
 # manually fix batch size
 CFG.batch_size = 10
 CFG.model_name = 'cnnbert_san'
-CFG.learning_rate = 2e-4
+CFG.learning_rate = 2e-5
+CFG.device = 'cuda:2'
 
 def seed_torch(seed=42):
     random.seed(seed)
@@ -71,7 +72,7 @@ def train_loop(trn_idx, val_idx):
     if CFG.model_name == "cnnbert_concat" or CFG.model_name == 'cnnbert_san':
         train_data = MemoDataset_Sentiment(np.array(train_images), x, target_tensor, CFG.train_path, \
             roberta_tokenizer, CFG.max_len, transform=get_transforms(data = 'train')) 
-        test_data = MemoDataset_Sentiment(np.array(test_images), xtest, target_tensor_test, CFG.train_path, \
+        test_data = MemoDataset_Sentiment(np.array(test_images), xtest, target_tensor_test, CFG.test_path, \
             roberta_tokenizer, CFG.max_len, transform=None) 
     # sampler = sampler,
     trainloader = DataLoader(train_data, batch_size=CFG.batch_size,  shuffle=True, drop_last = True, num_workers=4) # if have sampler, dont use shuffle
@@ -97,18 +98,14 @@ def train_loop(trn_idx, val_idx):
     if CFG.model_name == 'cnnbert_concat':
         model = CNN_Roberta_Concat(roberta_model_name = 'distilroberta-base', cnn_type = CFG.cnn_type, num_classes=CFG.n_sentiment_classes)
     elif CFG.model_name == 'cnnbert_san':
-        model = CNN_Roberta_SAN(roberta_model_name = 'distilroberta-base', cnn_type = CFG.cnn_type, num_classes=CFG.n_sentiment_classes)
+        model = CNN_Roberta_SAN(roberta_model_name = 'distilroberta-base', cnn_type = CFG.cnn_type, num_classes=CFG.n_sentiment_classes, device=CFG.device)
     
     model.to(CFG.device)
     params = list(model.parameters())
 
-    if CFG.model_name == 'cnnbert_san':
-        classifier = ClassifierLSTM_Sentiment(CFG.hidden_d, CFG.hidden_d2, CFG.dropout, CFG.n_layers, CFG.n_sentiment_classes, CFG.device)
-        classifier.to(CFG.device)
-        params = list(model.parameters()) + list(classifier.parameters())
-
     # Loss and optimizer
-    criterion = nn.CrossEntropyLoss(weight = CFG.class_weight_gradient) #  weight_class
+    # criterion = nn.CrossEntropyLoss(weight = CFG.class_weight_gradient.to(device)) #  weight_class
+    criterion = nn.CrossEntropyLoss() #  weight_class
     
     base_optimizer = RAdam(params, lr = CFG.learning_rate, weight_decay=CFG.weight_decay)
     optimizer = Lookahead(optimizer = base_optimizer, k = 5, alpha=0.5)
@@ -140,10 +137,7 @@ def train_loop(trn_idx, val_idx):
         predicted_total = []
         
         for i, batch_dict in enumerate(trainloader):  
-            
             model.train()
-            if CFG.model_name == 'cnnbert_san':
-                classifier.train()
 
             indices = batch_dict['x_indices'].to(CFG.device)
             attn_mask = batch_dict['x_attn_mask'].to(CFG.device)
@@ -151,9 +145,6 @@ def train_loop(trn_idx, val_idx):
             labels = batch_dict['y_target'].to(CFG.device)
 
             outputs = model(indices, attn_mask, images)
-            if CFG.model_name == 'cnnbert_san':
-                lstm_input = torch.unsqueeze(outputs, 0)
-                outputs = classifier(lstm_input)
 
             loss = criterion(outputs, labels)
             
@@ -210,8 +201,6 @@ def train_loop(trn_idx, val_idx):
             n_samples = 0
             for i_batch, batch_dict in enumerate(testloader):
                 model.eval()
-                if CFG.model_name == 'cnnbert_san':
-                    classifier.eval()
 
                 indices = batch_dict['x_indices'].to(CFG.device)
                 attn_mask = batch_dict['x_attn_mask'].to(CFG.device)
@@ -219,9 +208,6 @@ def train_loop(trn_idx, val_idx):
                 labels = batch_dict['y_target'].to(CFG.device)
 
                 outputs = model(indices, attn_mask, images)
-                if CFG.model_name == 'cnnbert_san':
-                    lstm_input = torch.unsqueeze(outputs, 0)
-                    outputs = classifier(lstm_input)
                 # max returns (value ,index)
                 _, predicted = torch.max(outputs.data, 1)
                 n_samples += labels.size(0)
@@ -245,26 +231,18 @@ def train_loop(trn_idx, val_idx):
 
             if current_macro > best_f1:
                 best_f1 = current_macro
+                print("Save model....")
+                torch.save({'model': model.state_dict(), 
+                        'optimizer': optimizer.state_dict(), 
+                        'scheduler': scheduler.state_dict()
+                        },
+                        f'{CFG.model_name}_fold{train_fold}_sentiment_best.pth')
+                
             if f1_mavg > best_f1_mavg:
                 best_f1_mavg = f1_mavg
             if acc > best_acc:
                 best_acc = acc
-                print("Save model....")
-                if CFG.model_name == 'cnnbert_san':
-                    torch.save({'model': model.state_dict(), 
-                                'classifier': classifier.state_dict(),
-                            'optimizer': optimizer.state_dict(), 
-                            'scheduler': scheduler.state_dict()
-                            },
-                            f'{CFG.model_name}_fold{train_fold}_sentiment_best.pth')
-                else:
-                    torch.save({'model': model.state_dict(), 
-                            'optimizer': optimizer.state_dict(), 
-                            'scheduler': scheduler.state_dict()
-                            },
-                            f'{CFG.model_name}_fold{train_fold}_sentiment_best.pth')
                 
-
             print(f'Accuracy of the network on the test set after Epoch {epoch+1} is: {acc} %')        
             print(f' Micro F1 on the testing: {f1_score(target_inter, predicted_inter, average="micro")}')
             print(f' Macro F1 on the testing: {f1_score(target_inter, predicted_inter, average="macro")}')

@@ -50,7 +50,7 @@ def seed_torch(seed=42):
 seed_torch(seed = CFG.seed)
 
 def train_loop(trn_idx, val_idx):
-
+    train_fold = 0
     # print('Training with fold {} started'.format(train_fold))
     # train_target_tensor = [target_tensor[index] for index in trn_idx]
     # val_target_tensor = [target_tensor[index] for index in val_idx]
@@ -61,9 +61,12 @@ def train_loop(trn_idx, val_idx):
     # sampler = torch.utils.data.sampler.WeightedRandomSampler(weights, len(weights), replacement=True)
     
     # only get image
-    train_data = MemoDataset_Sentiment(train_images[trn_idx], None, target_tensor, CFG.train_path, None, None, transform=get_transforms(data = 'train')) 
-    test_data = MemoDataset_Sentiment(train_images[val_idx], None, target_tensor_test, CFG.train_path, None, None, transform=None) 
+    # train_data = MemoDataset_Sentiment(train_images[trn_idx], None, train_target_tensor, CFG.train_path, None, None, transform=get_transforms(data = 'train')) 
+    # test_data = MemoDataset_Sentiment(train_images[val_idx], None, val_target_tensor, CFG.train_path, None, None, transform=None) 
     # 
+    train_data = MemoDataset_Sentiment(train_images, None, target_tensor, CFG.train_path, None, None, transform=get_transforms(data = 'train')) 
+    test_data = MemoDataset_Sentiment(test_images, None, target_tensor_test, CFG.test_path, None, None, transform=None) 
+
     trainloader = DataLoader(train_data, batch_size=CFG.batch_size, shuffle=True, drop_last = True, num_workers=4) # if have sampler, dont use shuffle
     testloader = DataLoader(test_data, batch_size=CFG.batch_size, drop_last=False, shuffle=False, num_workers=4)
     
@@ -288,9 +291,10 @@ ylabeltest = labelencode.fit_transform(ytest.astype(str))
 target_tensor_test = (ylabeltest.tolist())
 
 # train fold
-for train_fold in CFG.trn_fold:
-    folds = StratifiedKFold(n_splits = CFG.n_fold, shuffle = True, random_state = CFG.seed).split(np.arange(len(train_images)), y)
-    for fold, (trn_idx, val_idx) in enumerate(folds):
-        if fold == train_fold:  
-            train_loop(trn_idx, val_idx)
+# for train_fold in CFG.trn_fold:
+#     folds = StratifiedKFold(n_splits = CFG.n_fold, shuffle = True, random_state = CFG.seed).split(np.arange(len(train_images)), y)
+#     for fold, (trn_idx, val_idx) in enumerate(folds):
+#         if fold == train_fold:  
+#             train_loop(trn_idx, val_idx)
 
+train_loop(0, 0)

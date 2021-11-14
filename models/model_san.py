@@ -164,7 +164,7 @@ class MemoLSTM_SAN(nn.Module):
         self.bilstm = nn.LSTM(embedding_length, hidden_size, dropout=dropout, num_layers = n_layers, bidirectional=True)
         
         # image embedding
-        self.cnn = CNN(is_pretrained=True, type_=cnn_type)
+        self.cnn = CNN(is_pretrained=False, type_=cnn_type)
         self.drop = nn.Dropout(p=0.2)
         
         # attention

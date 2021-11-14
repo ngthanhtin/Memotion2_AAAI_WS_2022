@@ -31,7 +31,7 @@ from utils.clean_text import *
 
 import timm
 # manually fix batch size
-CFG.batch_size = 5
+CFG.batch_size = 10
 
 def seed_torch(seed=42):
     random.seed(seed)
@@ -45,13 +45,13 @@ seed_torch(seed = CFG.seed)
 
 def inference_sentiment():
 
-    test_data = MemoDataset_Sentiment(test_images, None, target_tensor_test, CFG.train_path, None, None, transform=None)
+    test_data = MemoDataset_Sentiment(test_images, None, target_tensor_test, CFG.test_path, None, None, transform=None)
 
     testloader = DataLoader(test_data, batch_size=CFG.batch_size, drop_last=False, shuffle=False, num_workers=4)
     #load full model
     states = torch.load('./onlyimage_fold0_sentiment_best.pth', map_location = torch.device('cpu'))
 
-    model = timm.create_model('efficientnetv2_rw_s', num_classes = CFG.n_sentiment_classes, pretrained = False)
+    model = timm.create_model('efficientnetv2_rw_s', num_classes = CFG.n_sentiment_classes, pretrained = True)
     #load model
     model.load_state_dict(states['model'])
     model.to(CFG.device)

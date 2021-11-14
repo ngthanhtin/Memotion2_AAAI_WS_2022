@@ -31,7 +31,7 @@ from utils.config import CFG
 from utils.clean_text import *
 # manually fix batch size
 CFG.batch_size = 10
-CFG.model_name = 'cnnbert_concat'
+CFG.model_name = 'cnnbert_san'
 CFG.device = 'cuda:1'
 
 def seed_torch(seed=42):
