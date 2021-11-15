@@ -37,6 +37,8 @@ python image_text/inference_intensity.py </br>
 python unimodal_text/inference_intensity.py </br>
 python unimodal_image/inference_intensity.py </br>
 
+# Result
+
 # Submission
 When running inference, it will create a file in `results/`. After inferencing 3 tasks, there will be 3 files in `results/`, then run `python utils/concat_submission.py` to generate `answer.txt`, zip it as `res.zip` to submit.
 
