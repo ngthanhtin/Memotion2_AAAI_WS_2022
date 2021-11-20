@@ -142,6 +142,9 @@ def main():
     
     def deleted_text_in_image(image_path):
         img = cv2.imread(image_path)
+        if img is None:
+            return image_path
+        
         img_height, img_width = img.shape[:2]
 
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -154,14 +157,26 @@ def main():
         # cv2.waitKey(0)
         return im
 
-    source_folder = "/home/tinvn/TIN/MEME_Challenge/memotion2/train_images/"
-    dest_folder = "/home/tinvn/TIN/MEME_Challenge/memotion2/cleaned_text_train_images/"
-    
+    source_folder = "/home/tinvn/TIN/MEME_Challenge/memotion2/Test_Images/"
+    dest_folder = "/home/tinvn/TIN/MEME_Challenge/memotion2/cleaned_text_test_images/"
+
     onlyfiles = [f for f in listdir(source_folder) if isfile(join(source_folder, f))]
+    already = [f for f in listdir(dest_folder) if isfile(join(source_folder, f))]
+    
+    wrong_files = []
     for f in onlyfiles:
+        if f in already:
+            continue
+
         im = deleted_text_in_image(source_folder + f)
+        if isinstance(im, str):
+            print(im)
+            wrong_files.append(im)
+            continue
+        
         cv2.imwrite(dest_folder + f, im)
         
+    print(wrong_files)
      
     
 if __name__ == "__main__":
