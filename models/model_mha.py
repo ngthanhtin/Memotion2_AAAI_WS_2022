@@ -39,7 +39,7 @@ class MemoLSTM_MHA(nn.Module):
         self.textual_fc = nn.Linear(512, 512)
         
         # image embedding
-        self.cnn = CNN(is_pretrained=False, type_=cnn_type)
+        self.cnn = CNN(is_pretrained=True, type_=cnn_type)
         self.visual_fc = nn.Linear(1792, 512) #
         self.drop = nn.Dropout(p=0.2)
         

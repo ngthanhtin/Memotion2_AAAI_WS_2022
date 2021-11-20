@@ -8,6 +8,8 @@ from utils.config import CFG
 
 from torch.nn import functional as F
 
+from utils.CCALoss import cca_loss, GCCA_loss
+
 class SwishImplementation(torch.autograd.Function):
     @staticmethod
     def forward(ctx, i):
@@ -70,6 +72,13 @@ class CNN_Roberta_Concat(nn.Module):
         # self.swish = MemoryEfficientSwish()
         self.output_fc = nn.Linear(2*num_classes,num_classes)
 
+        # the size of the new space learned by the model (number of the new features)
+        # outdim_size = 3
+        # # specifies if all the singular values should get used to calculate the correlation or just the top outdim_size ones
+        # # if one option does not work for a network or dataset, try the other one
+        # use_all_singular_values = False
+        # self.dcca_criterion = GCCA_loss
+
     def forward(self, indices, attn_mask, images):
         roberta_out = self.roberta(
             input_ids = indices, 
@@ -77,9 +86,11 @@ class CNN_Roberta_Concat(nn.Module):
         )[0]
         y_pred_roberta = self.roberta_clf(roberta_out)
 
+        #
         y_pred_cnn = self.cnn(images)
         y_pred_cnn = self.dropout(y_pred_cnn)
         
+        #
         combined_y_pred = torch.cat([y_pred_roberta, y_pred_cnn],dim=1)
         combined_y_pred = self.dropout(self.output_fc(combined_y_pred))
         
@@ -128,6 +139,47 @@ class CNN_Roberta_Concat_HybridFusion(nn.Module):
         y_pred_2 = self.dropout(self.output_fc_2(concat_features_2))
 
         return y_pred_2
+
+class CNN_Roberta_Discrete(nn.Module):
+    """
+    Use CNN and BERT
+    return 3 prediction, 2 of them are for single model prediction, the last one is for the fusion prediction
+    """
+    def __init__(self,
+        roberta_model_name = 'distilroberta-base',
+        cnn_type = 'efficientnetv2-s',
+        num_classes =  3
+        ):
+        super().__init__()
+        # text
+        self.roberta = RobertaModel.from_pretrained(
+            roberta_model_name,
+            num_labels = num_classes,
+        )
+        self.roberta_clf = RobertaClasasificationHead(self.roberta.config)
+        
+        # vision
+        self.cnn = CNN(is_pretrained=True, type_=cnn_type, num_classes=num_classes)
+        self.dropout = nn.Dropout(p=0.2)
+
+        # self.swish = MemoryEfficientSwish()
+        self.output_fc = nn.Linear(2*num_classes,num_classes)
+
+    def forward(self, indices, attn_mask, images):
+        roberta_out = self.roberta(
+            input_ids = indices, 
+            attention_mask =  attn_mask, 
+        )[0]
+        y_pred_roberta = self.roberta_clf(roberta_out)
+
+        y_pred_cnn = self.cnn(images)
+        y_pred_cnn = self.dropout(y_pred_cnn)
+        
+        concat_features = torch.cat([y_pred_roberta, y_pred_cnn], dim=1)
+        y_pred_fusion = self.dropout(self.output_fc(concat_features))
+
+        return y_pred_roberta, y_pred_cnn, y_pred_fusion
+
 
 class CNN_Roberta_SAN(nn.Module):
     """
