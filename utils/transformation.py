@@ -5,6 +5,7 @@ from albumentations import (
     )
 from albumentations.pytorch import ToTensorV2
 from torchvision import transforms,models
+from AutoAugment.autoaugment import ImageNetPolicy
 
 # transformations
 def get_transforms(*, data):
@@ -13,7 +14,8 @@ def get_transforms(*, data):
                             transforms.Resize(256),                    
                             transforms.CenterCrop(224),
                             transforms.RandomHorizontalFlip(0.5),
-                            transforms.RandomRotation(0.2),
+                            ImageNetPolicy(),
+                            # transforms.RandomRotation(0.2),
                             transforms.ToTensor(),                
                             transforms.Normalize(
                             mean=[0.485, 0.456, 0.406],

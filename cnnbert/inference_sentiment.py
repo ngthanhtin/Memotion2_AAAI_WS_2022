@@ -35,7 +35,9 @@ from utils.clean_text import *
 
 # manually fix batch size
 CFG.batch_size = 10
-CFG.model_name = 'cnnbert_fusion'
+CFG.model_name = 'cnnbert_san'
+CFG.test_path = CFG.private_test_path
+CFG.test_csv_path = CFG.private_csv_test_path
 
 print("Inference {}".format(CFG.model_name))
 
@@ -63,7 +65,10 @@ def inference_sentiment():
         model = CNN_Roberta_Concat_HybridFusion(roberta_model_name = 'distilroberta-base', cnn_type = CFG.cnn_type, num_classes=CFG.n_sentiment_classes)
         
     #load full model
-    states = torch.load(f'{CFG.model_name}_fold0_sentiment_best.pth', map_location = torch.device('cpu'))
+    # model_path = f'{CFG.model_name}_fold0_sentiment_best.pth'
+    # model_path = "/home/tinvn/TIN/MEME_Challenge/code/temp_best/best_cnnbert/concat/cnnbert_concat_fold0_sentiment_best_epoch2_5253.pth"
+    model_path = '/home/tinvn/TIN/MEME_Challenge/code/temp_best/best_cnnbert/san/cnnbert_san_fold0_sentiment_best_52_epoch6.pth'
+    states = torch.load(model_path, map_location = torch.device('cpu'))
     model.load_state_dict(states['model'])
     model.to(CFG.device)
     
@@ -115,7 +120,7 @@ def inference_sentiment():
 roberta_tokenizer = tokenizer = RobertaTokenizer.from_pretrained('distilroberta-base', do_lower_case=True)
 
 ###----- LOAD DATA---------###
-testdata = pd.read_csv('/home/tinvn/TIN/MEME_Challenge/memotion2/memotion_val.csv', header=None) 
+testdata = pd.read_csv(CFG.test_csv_path, header=None) 
 
 test_images = testdata[:][0].to_numpy()[1:]
 xtest = testdata[:][1].to_numpy()[1:]

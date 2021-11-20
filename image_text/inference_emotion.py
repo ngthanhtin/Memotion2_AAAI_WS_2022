@@ -34,7 +34,9 @@ from utils.clean_text import *
 
 # manually fix batch size
 CFG.batch_size = 10
-CFG.model_name = 'san'
+CFG.model_name = 'multihop'
+CFG.test_path = CFG.private_test_path
+CFG.test_csv_path = CFG.private_csv_test_path
 
 def seed_torch(seed=42):
     random.seed(seed)
@@ -52,7 +54,9 @@ def inference_emotion():
     testloader = DataLoader(test_data, batch_size=CFG.batch_size, drop_last=False, shuffle=False, num_workers=4)
 
     #load full model
-    states = torch.load(f'{CFG.model_name}_fold0_emotion_best.pth', map_location = torch.device('cpu'))
+    model_path = '/home/tinvn/TIN/MEME_Challenge/code/temp_best/best_image_text/multihop/pretrained true/multihop_fold0_emotion_best_7107_epoch20.pth'
+    # model_path = '/home/tinvn/TIN/MEME_Challenge/code/temp_best/best_image_text/san/pretrained true/san_fold0_emotion_best_714_epoch8.pth'
+    states = torch.load(model_path, map_location = torch.device('cpu'))
     if CFG.model_name == 'multihop':
         model = MemoLSTM_MHA(CFG.batch_size, CFG.n_sentiment_classes, CFG.units, len(tokenizer.stoi), CFG.embedding_dim, CFG.hidden_d, \
          CFG.dropout, CFG.n_layers, CFG.cnn_type, CFG.device)
@@ -181,7 +185,7 @@ def inference_emotion():
 tokenizer = torch.load(CFG.tokenizer_path)
 
 ###--- LOAD DATA-----------###
-testdata = pd.read_csv('/home/tinvn/TIN/MEME_Challenge/memotion2/memotion_val.csv', header=None) 
+testdata = pd.read_csv(CFG.test_csv_path, header=None) 
 #--test data---
 test_images = testdata[:][0].to_numpy()[1:] # image paths      
 xtest = testdata[:][2].to_numpy()[1:] # text

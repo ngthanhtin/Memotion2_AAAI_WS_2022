@@ -31,8 +31,10 @@ from utils.config import CFG
 from utils.clean_text import *
 # manually fix batch size
 CFG.batch_size = 10
-CFG.model_name = 'cnnbert_fusion'
+CFG.model_name = 'cnnbert_concat'
 CFG.device = 'cuda:1'
+CFG.test_path = CFG.private_test_path
+CFG.test_csv_path = CFG.private_csv_test_path
 
 def seed_torch(seed=42):
     random.seed(seed)
@@ -61,7 +63,8 @@ def inference_emotion():
         model = CNN_Roberta_Concat_HybridFusion(roberta_model_name = 'distilroberta-base', cnn_type = CFG.cnn_type, num_classes=4)
     #load full model
     path_file = f'{CFG.model_name}_fold0_emotion_best.pth'
-    # path_file = '/home/tinvn/TIN/MEME_Challenge/code/temp_best/best_cnnbert/concat/cnnbert_concat_fold0_emotion_best_epoch24_7141.pth'
+    path_file = '/home/tinvn/TIN/MEME_Challenge/code/temp_best/best_cnnbert/concat/cnnbert_concat_fold0_emotion_best_epoch24_7141.pth'
+    # path_file = '/home/tinvn/TIN/MEME_Challenge/code/temp_best/best_cnnbert/san/cnnbert_san_fold0_emotion_best_epoch12_7083.pth'
     states = torch.load(path_file, map_location = torch.device('cpu'))
     model.load_state_dict(states['model'])
     model.to(CFG.device)
@@ -152,10 +155,10 @@ def inference_emotion():
         current_macro_offensive = f1_score(target_inter_offensive, predicted_inter_offensive, average="macro")
         current_macro_motivation = f1_score(target_inter_motivation, predicted_inter_motivation, average="macro")
         
-        current_micro_humour = f1_score(target_inter_humour, predicted_inter_humour, average="micro")
-        current_micro_sarcasm = f1_score(target_inter_sarcasm, predicted_inter_sarcasm, average="micro")
-        current_micro_offensive = f1_score(target_inter_offensive, predicted_inter_offensive, average="micro")
-        current_micro_motivation = f1_score(target_inter_motivation, predicted_inter_motivation, average="micro")
+        current_micro_humour = f1_score(target_inter_humour, predicted_inter_humour, average="weighted")
+        current_micro_sarcasm = f1_score(target_inter_sarcasm, predicted_inter_sarcasm, average="weighted")
+        current_micro_offensive = f1_score(target_inter_offensive, predicted_inter_offensive, average="weighted")
+        current_micro_motivation = f1_score(target_inter_motivation, predicted_inter_motivation, average="weighted")
         
         current_macro_average = (current_macro_humour + current_macro_sarcasm + current_macro_offensive + current_macro_motivation)/4 
 
@@ -185,7 +188,7 @@ def inference_emotion():
 roberta_tokenizer = tokenizer = RobertaTokenizer.from_pretrained('distilroberta-base', do_lower_case=True)
 
 ###--- LOAD DATA-----------###
-testdata = pd.read_csv('/home/tinvn/TIN/MEME_Challenge/memotion2/memotion_val.csv', header=None) 
+testdata = pd.read_csv(CFG.test_csv_path, header=None) 
 
 #--test data---
 test_images = testdata[:][0].to_numpy()[1:] # image paths      

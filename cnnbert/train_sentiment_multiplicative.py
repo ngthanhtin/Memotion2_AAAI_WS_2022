@@ -28,7 +28,7 @@ from utils.transformation import get_transforms
 from utils.dataset_unimodal import MemoDataset_Sentiment
 from utils.tokenizer import Tokenizer
 # import models
-from models.model_cnnbert import CNN_Roberta_Concat, CNN_Roberta_SAN, CNN_Roberta_Concat_HybridFusion
+from models.model_cnnbert import CNN_Roberta_Concat, CNN_Roberta_SAN, CNN_Roberta_Concat_HybridFusion, CNN_Roberta_Discrete
 from transformers import BertTokenizer, RobertaTokenizer
 ###
 from models.classifier import ClassifierLSTM_Sentiment
@@ -37,11 +37,10 @@ from utils.clean_text import *
 from utils.radam.radam import RAdam
 from utils.lookahead.optimizer import Lookahead
 ###
-from utils.CCALoss import cca_loss
-from utils.CMPC_loss import compute_cmpc_loss
+from utils.multiplicative_loss import Multiplicative_CrossEntropy, Multiplicative_CrossEntropy_V2
 # manually fix batch size
 CFG.batch_size = 10
-CFG.model_name = 'cnnbert_concat'
+CFG.model_name = 'cnnbert_discrete'
 CFG.learning_rate = 2e-5
 CFG.device = 'cuda:2'
 
@@ -58,25 +57,11 @@ seed_torch(seed = CFG.seed)
 def train_loop(trn_idx, val_idx):
     train_fold = 0
     print('Training with fold {} started'.format(train_fold))
-    # train_input_tensor_pad = [input_tensor_pad[index] for index in trn_idx]
-    # train_target_tensor = [target_tensor[index] for index in trn_idx]
-    # val_input_tensor_pad = [input_tensor_pad[index] for index in val_idx]
-    # val_target_tensor = [target_tensor[index] for index in val_idx]
-    # #create sampler
-    # weights, weight_class = calculateWeights(target_tensor)
-    # weights = torch.FloatTensor(weights)
-    # weight_class = torch.FloatTensor(weight_class).to(CFG.device)
-    # print('weights: ', weights)
-    # sampler = torch.utils.data.sampler.WeightedRandomSampler(weights, len(weights), replacement=True)
 
-    # train_data = MemoDataset_Sentiment(train_images[trn_idx], train_input_tensor_pad, train_target_tensor, root_dir = CFG.train_path, transform=get_transforms(data = 'train'))
-    # test_data = MemoDataset_Sentiment(train_images[val_idx], val_input_tensor_pad, val_target_tensor, root_dir = CFG.train_path, transform=get_transforms(data = 'train')) 
-
-    if CFG.model_name == "cnnbert_concat" or CFG.model_name == 'cnnbert_san' or CFG.model_name == 'cnnbert_fusion':
-        train_data = MemoDataset_Sentiment(np.array(train_images), x, target_tensor, CFG.train_path, \
-            roberta_tokenizer, CFG.max_len, transform=get_transforms(data = 'train')) 
-        test_data = MemoDataset_Sentiment(np.array(test_images), xtest, target_tensor_test, CFG.test_path, \
-            roberta_tokenizer, CFG.max_len, transform=None) 
+    train_data = MemoDataset_Sentiment(np.array(train_images), x, target_tensor, CFG.train_path, \
+        roberta_tokenizer, CFG.max_len, transform=get_transforms(data = 'train')) 
+    test_data = MemoDataset_Sentiment(np.array(test_images), xtest, target_tensor_test, CFG.test_path, \
+        roberta_tokenizer, CFG.max_len, transform=None) 
     # sampler = sampler,
     trainloader = DataLoader(train_data, batch_size=CFG.batch_size,  shuffle=True, drop_last = True, num_workers=4) # if have sampler, dont use shuffle
     testloader = DataLoader(test_data, batch_size=CFG.batch_size, drop_last=False, shuffle=False, num_workers=4)
@@ -98,12 +83,8 @@ def train_loop(trn_idx, val_idx):
                                                     last_epoch = -1)
         return scheduler
     
-    if CFG.model_name == 'cnnbert_concat':
-        model = CNN_Roberta_Concat(roberta_model_name = 'distilroberta-base', cnn_type = CFG.cnn_type, num_classes=CFG.n_sentiment_classes)
-    elif CFG.model_name == 'cnnbert_san':
-        model = CNN_Roberta_SAN(roberta_model_name = 'distilroberta-base', cnn_type = CFG.cnn_type, num_classes=CFG.n_sentiment_classes, device=CFG.device)
-    elif CFG.model_name == 'cnnbert_fusion':
-        model = CNN_Roberta_Concat_HybridFusion(roberta_model_name = 'distilroberta-base', cnn_type = CFG.cnn_type, num_classes=CFG.n_sentiment_classes)
+    model = CNN_Roberta_Discrete(roberta_model_name = 'distilroberta-base', cnn_type = CFG.cnn_type, num_classes=CFG.n_sentiment_classes)
+
 
     # states = torch.load(f'{CFG.model_name}_fold0_sentiment_best.pth', map_location = torch.device('cpu'))
     # model.load_state_dict(states['model'])
@@ -113,7 +94,10 @@ def train_loop(trn_idx, val_idx):
     # Loss and optimizer
     # criterion = nn.CrossEntropyLoss(weight = CFG.class_weight_gradient.to(device)) #  weight_class
 
-    criterion = nn.CrossEntropyLoss() #  weight_class 
+    # criterion = nn.CrossEntropyLoss() #  weight_class 
+    beta = 0.5
+    criterion = Multiplicative_CrossEntropy(3, 3, beta, device=CFG.device)
+    ce = nn.CrossEntropyLoss()
     # criterion = compute_cmpc_loss
     # dcca_criterion = model.dcca_criterion
     #
@@ -154,13 +138,11 @@ def train_loop(trn_idx, val_idx):
             images = batch_dict['x_images'].to(CFG.device)
             labels = batch_dict['y_target'].to(CFG.device)
 
-            outputs, (v1, v2) = model(indices, attn_mask, images)
-
-            # loss, image_precision, text_precision = criterion(outputs, v1, v2, labels)
-            loss = criterion(outputs, labels)
-            # dcca_loss = dcca_criterion(v1, v2)
-            # loss += dcca_loss
-
+            outputs = model(indices, attn_mask, images)
+            loss, outputs_new = criterion(outputs, labels)
+            outputs = outputs[-1] * outputs_new
+            loss = ce(outputs, labels)
+            # loss = loss.mean()
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -221,7 +203,9 @@ def train_loop(trn_idx, val_idx):
                 images = batch_dict['x_images'].to(CFG.device)
                 labels = batch_dict['y_target'].to(CFG.device)
 
-                outputs, _ = model(indices, attn_mask, images)
+                outputs = model(indices, attn_mask, images)
+                _, outputs_new = criterion(outputs, labels)
+                outputs = outputs[-1] * outputs_new
                 # max returns (value ,index)
                 _, predicted = torch.max(outputs.data, 1)
                 n_samples += labels.size(0)

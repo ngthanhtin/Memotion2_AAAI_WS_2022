@@ -33,6 +33,8 @@ from transformers import BertTokenizer, RobertaTokenizer,RobertaModel, XLNetToke
 
 # manually fix batch size
 CFG.batch_size = 10
+CFG.test_path = CFG.private_test_path
+CFG.test_csv_path = CFG.private_csv_test_path
 
 def seed_torch(seed=42):
     random.seed(seed)
@@ -51,7 +53,8 @@ def inference_sentiment():
     testloader = DataLoader(test_data, batch_size=CFG.batch_size, drop_last=False, shuffle=False, num_workers=4)
     #load full model
     # onlytext_fold0_sentiment_best.pth
-    states = torch.load('/home/tinvn/TIN/MEME_Challenge/code/temp_best/best_onlytext/onlytext_fold0test_sentiment_best_old_5095.pth', map_location = torch.device('cpu'))
+    model_path = '/home/tinvn/TIN/MEME_Challenge/code/temp_best/best_onlytext/onlytext_fold0_sentiment_best_5154_new.pth'
+    states = torch.load(model_path, map_location = torch.device('cpu'))
 
     model = RobertaForSequenceClassification.from_pretrained("distilroberta-base", num_labels=CFG.n_sentiment_classes)
     model.to(CFG.device)
@@ -105,7 +108,7 @@ def inference_sentiment():
 roberta_tokenizer = tokenizer = RobertaTokenizer.from_pretrained('distilroberta-base')
 
 ###----- LOAD DATA---------###
-testdata = pd.read_csv('/home/tinvn/TIN/MEME_Challenge/memotion2/memotion_val.csv', header=None) 
+testdata = pd.read_csv(CFG.test_csv_path, header=None) 
 
 test_images = testdata[:][0].to_numpy()[1:]
 xtest = testdata[:][1].to_numpy()[1:]

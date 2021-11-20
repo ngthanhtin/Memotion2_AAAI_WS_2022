@@ -49,8 +49,9 @@ def inference_intensity():
         CFG.test_path, None, None, transform=None, task='intensity') 
     testloader = DataLoader(test_data, batch_size=CFG.batch_size, drop_last=False, shuffle=False, num_workers=4)
 
-    states = torch.load('onlyimage_fold0_intensity_best.pth',  map_location=torch.device('cpu'))
-    model = CNN(is_pretrained=False, type_=CFG.cnn_type)# B, C, W,H B, 1792, 7, 7
+    model_path = '/home/tinvn/TIN/MEME_Challenge/code/temp_best/best_onlyimage/onlyimage_fold0_intensity_best_5628.pth'
+    states = torch.load(model_path,  map_location=torch.device('cpu'))
+    model = CNN(is_pretrained=True, type_=CFG.cnn_type)# B, C, W,H B, 1792, 7, 7
     classifier = Classifier_Intensity(hidden_d=1792, hidden_d2=500, n_classes_humour=CFG.n_intensity_classes[0], n_classes_sarcasm=CFG.n_intensity_classes[1], \
         n_classes_offensive=CFG.n_intensity_classes[2], n_classes_motivation=CFG.n_intensity_classes[3], dropout=CFG.dropout, use_cbam=False)
     model.load_state_dict(states['model'])

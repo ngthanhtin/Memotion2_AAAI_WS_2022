@@ -30,8 +30,11 @@ from utils.config import CFG
 from utils.clean_text import *
 # manually fix batch size
 CFG.batch_size = 10
-CFG.model_name = 'cnnbert_fusion'
+CFG.model_name = 'cnnbert_san'
 CFG.device = 'cuda:0'
+CFG.test_path = CFG.private_test_path
+CFG.test_csv_path = CFG.private_csv_test_path
+
 
 def seed_torch(seed=42):
     random.seed(seed)
@@ -63,8 +66,9 @@ def inference_intensity():
             n_sarcasm_classes=CFG.n_intensity_classes[1], n_offensive_classes=CFG.n_intensity_classes[2], n_motivation_classes=CFG.n_intensity_classes[3])
     
     #load full model
-    path_file = f'{CFG.model_name}_fold0_intensity_best.pth'
-    # path_file = '/home/tinvn/TIN/MEME_Challenge/code/temp_best/best_cnnbert/san/cnnbert_san_fold0_intensity_best_epoch15_584.pth'
+    # path_file = f'{CFG.model_name}_fold0_intensity_best.pth'
+    # path_file = '/home/tinvn/TIN/MEME_Challenge/code/temp_best/best_cnnbert/concat/cnnbert_concat_fold0_intensity_best_epoch20_5823.pth'
+    path_file = '/home/tinvn/TIN/MEME_Challenge/code/temp_best/best_cnnbert/san/cnnbert_san_fold0_intensity_best_epoch15_584.pth'
     states = torch.load(path_file, map_location = torch.device('cpu'))
     model.load_state_dict(states['model'])
     model.to(CFG.device)
@@ -177,7 +181,7 @@ def inference_intensity():
 roberta_tokenizer = RobertaTokenizer.from_pretrained('distilroberta-base', do_lower_case=True)
 
 ###--- LOAD DATA-----------###
-testdata = pd.read_csv('/home/tinvn/TIN/MEME_Challenge/memotion2/memotion_val.csv', header=None) 
+testdata = pd.read_csv(CFG.test_csv_path, header=None) 
 
 #--test data---
 test_images = testdata[:][0].to_numpy()[1:] # image paths      

@@ -37,9 +37,11 @@ class CFG:
 
     train_path     = '../memotion2/cleaned_text_train_images/'
     test_path      = '../memotion2/cleaned_text_val_images/'
+    private_test_path = '../memotion2/cleaned_text_test_images/'
     train_csv_path = '../memotion2/memotion_train.csv'
     test_csv_path  = '../memotion2/memotion_val.csv'
-    
+    private_csv_test_path = '../memotion2/memotion_test.csv'
+
     tokenizer_path = './tokenizers/tokenizer2.pth'
     sentiment_model= './multihop_fold0test_sentiment_best.pth'
     emotion_model  = './temp_best/multihop_fold0_emotion_best.pth'

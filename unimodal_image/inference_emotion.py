@@ -32,6 +32,8 @@ from models.classifier_onlyimage import Classifier_Emotion
 
 # manually fix batch size
 CFG.batch_size = 10
+CFG.test_path = CFG.private_test_path
+CFG.test_csv_path = CFG.private_csv_test_path
 
 def seed_torch(seed=42):
     random.seed(seed)
@@ -49,9 +51,10 @@ def inference_emotion():
         CFG.test_path, None, None, transform=None, task='emotion') 
     testloader = DataLoader(test_data, batch_size=CFG.batch_size, drop_last=False, shuffle=False, num_workers=4)
 
-    states = torch.load('onlyimage_fold0_emotion_best.pth',  map_location=torch.device('cpu'))
-    model = CNN(is_pretrained=False, type_=CFG.cnn_type)# B, C, W,H B, 1792, 7, 7
-    classifier = Classifier_Emotion(hidden_d=1792, hidden_d2=500, n_classes=CFG.n_emotion_classes, dropout=CFG.dropout, use_cbam=False)
+    model_path = '/home/tinvn/TIN/MEME_Challenge/code/temp_best/best_onlyimage/onlyimage_fold0_emotion_best_epoch25_7033.pth'
+    states = torch.load(model_path,  map_location=torch.device('cpu'))
+    model = CNN(is_pretrained=True, type_=CFG.cnn_type)# B, C, W,H B, 1792, 7, 7
+    classifier = Classifier_Emotion(hidden_d=1792, hidden_d2=500, n_classes=CFG.n_emotion_classes, dropout=CFG.dropout, use_cbam=True)
     model.load_state_dict(states['model'])
     classifier.load_state_dict(states['classifier'])
     model.to(CFG.device)
@@ -160,7 +163,7 @@ def inference_emotion():
 
 
 ###--- LOAD DATA-----------###
-testdata = pd.read_csv('/home/tinvn/TIN/MEME_Challenge/memotion2/memotion_val.csv', header=None) 
+testdata = pd.read_csv(CFG.test_csv_path, header=None) 
 #--test data---
 test_images = testdata[:][0].to_numpy()[1:] # image paths      
 xtest = testdata[:][2].to_numpy()[1:] # text

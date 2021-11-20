@@ -36,6 +36,8 @@ CFG.batch_size = 15
 CFG.epochs = 25
 CFG.learning_rate = 2e-5
 CFG.device = 'cuda:1'
+CFG.test_path = CFG.private_test_path
+CFG.test_csv_path = CFG.private_csv_test_path
 
 def seed_torch(seed=42):
     random.seed(seed)
@@ -55,7 +57,8 @@ def inference_intensity():
     testloader = DataLoader(test_data, batch_size=CFG.batch_size, drop_last=False, shuffle=False, num_workers=4)
     #load full model
     # 
-    states = torch.load('onlytext_fold0_intensity_best.pth', map_location = torch.device('cpu'))
+    model_path = '/home/tinvn/TIN/MEME_Challenge/code/temp_best/best_onlytext/onlytext_fold0_intensity_best_epoch14_5781.pth'
+    states = torch.load(model_path, map_location = torch.device('cpu'))
 
     model = Classifier_Intensity(CFG.n_intensity_classes[0], CFG.n_intensity_classes[1], CFG.n_intensity_classes[2], CFG.n_intensity_classes[3], CFG.dropout)
     model.to(CFG.device)
@@ -174,7 +177,7 @@ roberta_tokenizer = tokenizer = RobertaTokenizer.from_pretrained('distilroberta-
 
 
 ###--- LOAD DATA-----------###
-testdata = pd.read_csv('/home/tinvn/TIN/MEME_Challenge/memotion2/memotion_val.csv', header=None) 
+testdata = pd.read_csv(CFG.test_csv_path, header=None) 
 #--test data---
 test_images = testdata[:][0].to_numpy()[1:] # image paths      
 xtest = testdata[:][2].to_numpy()[1:] # text

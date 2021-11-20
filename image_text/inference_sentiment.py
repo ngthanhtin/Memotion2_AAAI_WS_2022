@@ -37,6 +37,10 @@ from utils.clean_text import *
 # manually fix batch size
 CFG.batch_size = 10
 CFG.model_name = 'multihop'
+
+CFG.test_path = CFG.private_test_path
+CFG.test_csv_path = CFG.private_csv_test_path
+
 print("Inference {}".format(CFG.model_name))
 
 def seed_torch(seed=42):
@@ -56,6 +60,7 @@ def inference_sentiment():
     testloader = DataLoader(test_data, batch_size=CFG.batch_size, drop_last=False, shuffle=False, num_workers=4)
     #load full model
     path_file = '/home/tinvn/TIN/MEME_Challenge/code/temp_best/best_image_text/multihop/pretrained true/multihop_fold0_sentiment_best_epoch3_5316.pth'
+    # path_file = '/home/tinvn/TIN/MEME_Challenge/code/temp_best/best_image_text/san/pretrained true/san_fold0_sentiment_best_epoch6_5138.pth'
     # path_file = f'{CFG.model_name}_fold0_sentiment_best.pth'
     states = torch.load(path_file, map_location = torch.device('cpu'))
 
@@ -129,7 +134,8 @@ def inference_sentiment():
 tokenizer = torch.load(CFG.tokenizer_path)
 
 ###----- LOAD DATA---------###
-testdata = pd.read_csv('/home/tinvn/TIN/MEME_Challenge/memotion2/memotion_val.csv', header=None) 
+
+testdata = pd.read_csv(CFG.test_csv_path, header=None) 
 
 test_images = testdata[:][0].to_numpy()[1:]
 xtest = testdata[:][1].to_numpy()[1:]
