@@ -13,3 +13,4 @@ utils/lookahead/__pycache__/
 utils/memotion_utils/__pycache__/
 utils/memotion_utils/transformer/__pycache__/
 utils/radam/__pycache__/
+AutoAugment/__pycache__/
