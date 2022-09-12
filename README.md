@@ -1,4 +1,8 @@
+<div align="center"> 
 [Shared task @ AAAI 2022: First Workshop on ​Multimodal Fact-Checking and Hate Speech Detection](https://aiisc.ai/defactify/memotion_2.html)
+by [Thanh Tin Nguyen *](https://https://ngthanhtin.github.io/), Nhat Truong Pham, and Yong-Guk Kim. 
+
+</div> 
 
 # Create Tokenizer
 python tokenizer.py, it will create a pth file, then put the generated file in `tokenizers/` folder.
