@@ -1,4 +1,5 @@
 <div align="center"> 
+  
 # Shared task @ AAAI 2022: First Workshop on Multimodal Fact-Checking and Hate Speech Detection
 by [Thanh Tin Nguyen *](https://https://ngthanhtin.github.io/), Nhat Truong Pham, and Yong-Guk Kim. 
 
