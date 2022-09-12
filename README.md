@@ -3,9 +3,11 @@
 # Shared task @ AAAI 2022: First Workshop on Multimodal Fact-Checking and Hate Speech Detection
 by [Thanh Tin Nguyen *](https://https://ngthanhtin.github.io/), Nhat Truong Pham, and Yong-Guk Kim. 
 
-</div> 
 [![Paper](https://img.shields.io/badge/paper-arxiv.svg)](http://ceur-ws.org/Vol-3199/paper12.pdf)
 [![Conference](http://img.shields.io/badge/XAI4CV@CVPR-2022-4b44ce.svg)](https://aiisc.ai/defactify/memotion_2.html)
+  
+</div> 
+
 
 # Create Tokenizer
 python tokenizer.py, it will create a pth file, then put the generated file in `tokenizers/` folder.
