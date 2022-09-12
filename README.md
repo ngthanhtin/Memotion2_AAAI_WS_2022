@@ -4,7 +4,7 @@
 by [Thanh Tin Nguyen *](https://https://ngthanhtin.github.io/), Nhat Truong Pham, and Yong-Guk Kim. 
 
 [![Paper](https://img.shields.io/badge/paper-arxiv.svg)](http://ceur-ws.org/Vol-3199/paper12.pdf)
-[![Conference](http://img.shields.io/badge/XAI4CV@CVPR-2022-4b44ce.svg)](https://aiisc.ai/defactify/memotion_2.html)
+[![Conference](https://img.shields.io/badge/Defactify@AAAI-2022-4b44ce.svg)](https://aiisc.ai/defactify/memotion_2.html)
   
 </div> 
 
